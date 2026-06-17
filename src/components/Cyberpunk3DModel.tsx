@@ -309,6 +309,17 @@ export default function Cyberpunk3DModel({ accentColor }: Cyberpunk3DModelProps)
     };
   }, [accentColor, primaryColor]);
 
+  const getAccentHexStr = (color: typeof accentColor) => {
+    switch (color) {
+      case 'green': return '#39FF14';
+      case 'cyan': return '#00D4FF';
+      case 'pink': return '#FF007F';
+      case 'purple': return '#BD00FF';
+      case 'yellow': return '#FFE600';
+      default: return '#39FF14';
+    }
+  };
+
   return (
     <div 
       ref={containerRef} 
@@ -323,7 +334,10 @@ export default function Cyberpunk3DModel({ accentColor }: Cyberpunk3DModelProps)
       {/* Cyber ambient loading state if downloading */}
       {loading && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
-          <div className="w-12 h-12 rounded-full border-2 border-white/5 border-t-[#39FF14] animate-spin mb-4" />
+          <div 
+            className="w-12 h-12 rounded-full border-2 border-white/5 animate-spin mb-4" 
+            style={{ borderTopColor: getAccentHexStr(accentColor) }}
+          />
           <span className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#8A9BC4] animate-pulse">
             CONNECTING CORE_LINK_3D...
           </span>
@@ -332,7 +346,10 @@ export default function Cyberpunk3DModel({ accentColor }: Cyberpunk3DModelProps)
 
       {/* Retro HUD text showing loaded system or fallback details */}
       <div className="absolute bottom-1 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-none font-mono text-[8px] md:text-[9.5px] text-[#8A9BC4] text-center w-full max-w-[280px] bg-black/40 backdrop-blur-md border border-white/5 py-1.5 px-3 rounded-full flex items-center justify-center gap-1.5 opacity-80 uppercase">
-        <span className={`w-1.5 h-1.5 rounded-full ${isFallback ? 'bg-amber-400 animate-pulse' : 'bg-[#39FF14] animate-ping'}`} />
+        <span 
+          className={`w-1.5 h-1.5 rounded-full ${isFallback ? 'bg-amber-400 animate-pulse' : 'animate-ping'}`} 
+          style={{ backgroundColor: isFallback ? undefined : getAccentHexStr(accentColor) }}
+        />
         <span>
           {isFallback 
             ? "HOLO_HUD ACTIVE · CUSTOM_GLB_READY" 

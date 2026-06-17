@@ -49,11 +49,11 @@ export default function SkillsSection({ accentColor }: SkillsSectionProps) {
   // Helper icons for categories to add micro-details
   const getCategoryIcon = (categoryName: string) => {
     switch (categoryName.toUpperCase()) {
-      case 'LANGUAGES': return <Terminal className="w-4 h-4 text-[#39FF14]" />;
+      case 'LANGUAGES': return <Terminal className={`w-4 h-4 ${accentTextClass}`} />;
       case 'FRONTEND': return <Cpu className="w-4 h-4 text-[#00D4FF]" />;
       case 'BACKEND': return <GitBranch className="w-4 h-4 text-emerald-400" />;
       case 'DATABASES': return <Database className="w-4 h-4 text-amber-400" />;
-      case 'CLOUD & DEVOPS': return <Shield className="w-4 h-4 text-[#39FF14]" />;
+      case 'CLOUD & DEVOPS': return <Shield className={`w-4 h-4 ${accentTextClass}`} />;
       default: return <Radio className="w-4 h-4 text-sky-400" />;
     }
   };

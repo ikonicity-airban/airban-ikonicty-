@@ -11,6 +11,7 @@ export interface Project {
   tech: string[];
   links: { label: string; url: string }[];
   meta: string;
+  image?: string;
 }
 
 export interface TimelineItem {

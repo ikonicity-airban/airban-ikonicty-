@@ -295,16 +295,29 @@ export default function ProjectsSection({ accentColor, dbProjects }: ProjectsSec
                     {renderStatus(geekCreations.status)}
                   </div>
 
-                  <div className="space-y-3.5 text-left">
-                    <h3 className="text-2xl md:text-3xl font-display font-black text-white tracking-tight uppercase leading-none group-hover:text-[#39FF14] transition-colors">
-                      {geekCreations.title}
-                    </h3>
-                    <p className="text-xs md:text-sm text-[#39FF14] font-mono leading-none font-bold">
-                      {geekCreations.subtitle}
-                    </p>
-                    <p className="text-xs text-[#8A9BC4] leading-relaxed max-w-2xl font-normal pt-2">
-                      {geekCreations.description}
-                    </p>
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                    <div className="md:col-span-7 space-y-3.5 text-left">
+                      <h3 className="text-2xl md:text-3xl font-display font-black text-white tracking-tight uppercase leading-none group-hover:text-[#39FF14] transition-colors">
+                        {geekCreations.title}
+                      </h3>
+                      <p className="text-xs md:text-sm text-[#39FF14] font-mono leading-none font-bold">
+                        {geekCreations.subtitle}
+                      </p>
+                      <p className="text-xs text-[#8A9BC4] leading-relaxed max-w-2xl font-normal pt-2">
+                        {geekCreations.description}
+                      </p>
+                    </div>
+                    {geekCreations.image && (
+                      <div className="md:col-span-5 relative aspect-video md:aspect-[4/3] rounded-xl overflow-hidden border border-white/5 bg-slate-950/40">
+                        <img
+                          src={geekCreations.image}
+                          alt={geekCreations.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-103"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#080D1F]/50 to-transparent" />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -362,6 +375,17 @@ export default function ProjectsSection({ accentColor, dbProjects }: ProjectsSec
                       <h3 className="text-lg md:text-xl font-display font-black text-white uppercase group-hover:text-[#39FF14] transition-colors pt-1">
                         {icatholicIgbo.title}
                       </h3>
+                      {icatholicIgbo.image && (
+                        <div className="relative aspect-video rounded-xl overflow-hidden border border-white/5 bg-slate-950/40 my-3">
+                          <img
+                            src={icatholicIgbo.image}
+                            alt={icatholicIgbo.title}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-103"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#080D1F]/50 to-transparent" />
+                        </div>
+                      )}
                       <p className="text-[10px] text-[#8A9BC4] leading-relaxed pt-1.5 font-normal">
                         {icatholicIgbo.subtitle}
                       </p>
@@ -408,6 +432,17 @@ export default function ProjectsSection({ accentColor, dbProjects }: ProjectsSec
                       <h3 className="text-lg md:text-xl font-display font-black text-white uppercase group-hover:text-[#39FF14] transition-colors pt-1">
                         {biddo.title}
                       </h3>
+                      {biddo.image && (
+                        <div className="relative aspect-video rounded-xl overflow-hidden border border-white/5 bg-slate-950/40 my-3">
+                          <img
+                            src={biddo.image}
+                            alt={biddo.title}
+                            referrerPolicy="no-referrer"
+                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-103"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#080D1F]/50 to-transparent" />
+                        </div>
+                      )}
                       <p className="text-[10px] text-[#8A9BC4] leading-relaxed pt-1.5 font-normal">
                         {biddo.subtitle}
                       </p>
@@ -463,6 +498,18 @@ export default function ProjectsSection({ accentColor, dbProjects }: ProjectsSec
                     </div>
                     {renderStatus(p.status)}
                   </div>
+
+                  {p.image && (
+                    <div className="relative aspect-video rounded-xl overflow-hidden border border-white/5 bg-slate-950 mb-3.5">
+                      <img
+                        src={p.image}
+                        alt={p.title}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-104 pr-[1px]"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#080D1F]/60 via-transparent to-transparent opacity-85" />
+                    </div>
+                  )}
 
                   <div className="space-y-1.5">
                     <span className="block text-[8px] font-mono text-slate-400 font-bold uppercase tracking-wide">{p.tag}</span>

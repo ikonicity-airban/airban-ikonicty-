@@ -46,6 +46,7 @@ import {
   getAccentTextClass,
   getAccentBgClass,
   getAccentRgba,
+  getAccentSelectionClass,
 } from "./utils";
 import { AccentColor } from "./types";
 import CyberpunkParticles from "./components/CyberpunkParticles";
@@ -72,8 +73,23 @@ import {
 
 export default function App() {
   const [booting, setBooting] = useState(true);
-  const [bootStep, setBootStep] = useState(0);
-  const [bootLogs, setBootLogs] = useState<string[]>([]);
+  const [bootProgress, setBootProgress] = useState(0);
+  const [elapsedMs, setElapsedMs] = useState(0);
+
+  // Helper to resolve localized boot notifications based on terminal progress metrics
+  const getBootLogMessage = (pct: number) => {
+    if (pct < 10) return "Establishing Secure SSH Tunnel to Enugu Server Node...";
+    if (pct < 20) return "Pulling repository manifests index & package.json...";
+    if (pct < 32) return "Resolving iCatholic Igbo Missal assets & 70K active user shards...";
+    if (pct < 45) return "Unpacking Biddo live property bid streams & real-time heatmaps...";
+    if (pct < 58) return "Configuring WAPlug automation webhooks & message automation SaaS...";
+    if (pct < 72) return "Loading Oyadrop secure Paystack gateway integration & logistics maps...";
+    if (pct < 85) return "Compiling RabbAi student dashboard, score gauges, and AI chatbots...";
+    if (pct < 95) return "Linking high-performance avionics deck systems and dashboard indicators...";
+    if (pct < 100) return "Initiating secure workspace integrity handshakes...";
+    return "SUCCESS: Workspace environment fully active! Ready to render.";
+  };
+
   const [uptime, setUptime] = useState({ d: 0, h: 0, m: 0, s: 0, ms: 0 });
   const [ping, setPing] = useState(24);
   const [localDateTime, setLocalDateTime] = useState("");
@@ -90,6 +106,7 @@ export default function App() {
   const [showConfig, setShowConfig] = useState(false);
   const [showCVModal, setShowCVModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isSkipHovered, setIsSkipHovered] = useState(false);
   const [inputUrl, setInputUrl] = useState("");
   const [inputBgUrl, setInputBgUrl] = useState("");
   const [activePreset, setActivePreset] = useState<
@@ -203,36 +220,50 @@ export default function App() {
   // References
   const terminalLogsEndRef = useRef<HTMLDivElement>(null);
 
-  // Simulated system diagnostics log messages for the loader Sequence
-  const sysLogs = [
-    ">> COCKPIT INTERFACE BOOT PROTOCOL v4.1.002 INITIALIZED",
-    ">> AUTH SECTOR: ikonicity-airban CONFIRMED ENUGU PORT",
-    ">> LINKING LATENCY ENGINE: PING 24ms TO LOCAL CHANNELS",
-    ">> COMPILING SOLIDITY CORE & SOL PROTOCOLS...",
-    ">> COMPILING RUST CRATE AXUM BINDINGS...",
-    ">> BINDING TYPESCRIPT TYPES AND MEMORY POOLS...",
-    ">> RESOLVING PLUGINS [BUN / NODE / DENO] DETECTED",
-    ">> INJECTING NEON SYSTEM ACCENTS // COAX_2210 ENABLED",
-    ">> RESOLVING GEOLOCATION MAP: 6.4281° N, 7.4951° E",
-    ">> LOADING GRAPHIC INTERFACE FLIGHT PATHS...",
-    ">> PREPARING PRIMARY COCKPIT VIEW... SYSTEMS GREEN 🟢",
-  ];
-
-  // Boot Sequence effect
+  // Dynamic boot progress loader effect
   useEffect(() => {
-    if (bootStep < sysLogs.length) {
-      const interval = setTimeout(() => {
-        setBootLogs((prev) => [...prev, sysLogs[bootStep]]);
-        setBootStep((prev) => prev + 1);
-      }, 220);
-      return () => clearTimeout(interval);
-    } else {
-      const finishBoot = setTimeout(() => {
+    if (!booting) return;
+    
+    const startTime = Date.now();
+    const interval = setInterval(() => {
+      setElapsedMs(Date.now() - startTime);
+      setBootProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          const endTimeout = setTimeout(() => {
+            setBooting(false);
+          }, 350);
+          return 100;
+        }
+        // Realistic step speed simulation - fast at start, holds slightly, ends clean
+        const speedFactor = Math.random();
+        let increment = 1;
+        if (speedFactor < 0.2) {
+          increment = Math.floor(Math.random() * 2) + 1; // 1-2%
+        } else if (speedFactor < 0.7) {
+          increment = Math.floor(Math.random() * 4) + 3; // 3-6%
+        } else {
+          increment = Math.floor(Math.random() * 6) + 4; // 4-9%
+        }
+        return Math.min(prev + increment, 100);
+      });
+    }, 70);
+
+    return () => clearInterval(interval);
+  }, [booting]);
+
+  // Terminal Escape or Ctrl+C bypass key handler
+  useEffect(() => {
+    if (!booting) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" || (e.ctrlKey && e.key.toLowerCase() === "c")) {
+        e.preventDefault();
         setBooting(false);
-      }, 400);
-      return () => clearTimeout(finishBoot);
-    }
-  }, [bootStep]);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [booting]);
 
   // Uptime dynamic calculator (Inception Date cached in Local Storage to prevent drift and persist status across browser refreshes)
   useEffect(() => {
@@ -647,11 +678,30 @@ export default function App() {
     btnBase: getBtnBaseClass(accentColor),
   };
 
+  // Git Bash progress bar metrics calculated dynamically
+  const totalKBytes = 4132;
+  const receivedKBytes = Math.floor((bootProgress / 100) * totalKBytes);
+  const timeTotalStr = "0:00:03";
+  const elapsedSecs = Math.floor(elapsedMs / 1000);
+  const timeLeftSecs = Math.max(0, 3 - elapsedSecs);
+  const timeLeftStr = bootProgress === 100 ? "--:--:--" : `0:00:0${timeLeftSecs}`;
+  const currSpeed = bootProgress === 0 ? "0k" : bootProgress < 100 ? "2.2M" : "2.4M";
+
+  const barLength = 25;
+  const filledBlocks = Math.floor((bootProgress / 100) * barLength);
+  const emptyBlocks = barLength - filledBlocks;
+  const bar = "█".repeat(filledBlocks) + "░".repeat(emptyBlocks);
+
   return (
-    <div className="relative min-h-screen bg-[#050816] text-[#F0F4FF] overflow-x-hidden font-sans selection:bg-[#39FF14]/30 selection:text-[#39FF14]">
+    <div className={`relative min-h-screen bg-[#050816] text-[#F0F4FF] overflow-x-clip font-sans ${getAccentSelectionClass(accentColor)}`}>
       {/* 1. SCALING SYSTEM SCANLINE SWEEP */}
       <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden select-none">
-        <div className="w-full h-[3px] bg-gradient-to-r from-transparent via-[#39FF14]/15 to-transparent absolute top-0 left-0 animate-[scanline_8s_linear_infinite]" />
+        <div 
+          className="w-full h-[3px] absolute top-0 left-0 animate-[scanline_8s_linear_infinite]" 
+          style={{
+            backgroundImage: `linear-gradient(to right, transparent, ${getAccentHex(accentColor)}26, transparent)`
+          }}
+        />
       </div>
 
       {/* Edge cockpit border lights */}
@@ -667,65 +717,121 @@ export default function App() {
       </div>
 
       {/* Background grid structure */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(57,255,20,0.01)_1px,transparent_1px),linear-gradient(to_bottom,rgba(57,255,20,0.01)_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] pointer-events-none" />
+      <div 
+        className="absolute inset-0 bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)] pointer-events-none" 
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, ${getAccentHex(accentColor)}05 1px, transparent 1px),
+            linear-gradient(to bottom, ${getAccentHex(accentColor)}05 1px, transparent 1px)
+          `
+        }}
+      />
 
       {/* Dynamic Cyberpunk Ambient Particle System */}
       <CyberpunkParticles accentColor={accentColor} />
 
-      {/* BOOTING SEQUENCE SYSTEM LOADER (CYBERPUNK CONSOLE) */}
+      {/* BOOTING SEQUENCE SYSTEM LOADER (GIT BASH CONSOLE) */}
       <AnimatePresence>
         {booting && (
           <motion.div
-            className="fixed inset-0 bg-[#050816] z-50 flex flex-col items-center justify-center p-6"
+            className="fixed inset-0 bg-[#050816]/95 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 md:p-6"
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="w-full max-w-xl p-8 rounded-2xl border border-white/5 bg-[#080D1F] shadow-2xl relative">
-              <div className="absolute top-3 right-4 flex items-center gap-1.5 text-[8.5px] font-mono text-[#8A9BC4]">
-                <Activity className="w-3 h-3 text-[#39FF14] animate-pulse" />
-                <span>SEC_CORE: ONLINE</span>
-              </div>
-
-              <div className="flex items-center gap-4 mb-6 pb-4 border-b border-white/5">
-                <Logo size={42} showText={false} />
-                <div className="text-left">
-                  <span className="block text-xs font-display font-black tracking-[0.2em] text-white">
-                    AIRBAN IKONICITY
-                  </span>
-                  <span className="block text-[8px] font-mono font-bold text-[#39FF14] tracking-wider uppercase">
-                    System Boot Module v4.1.022
+            {/* Terminal Window Shell */}
+            <div className="w-full max-w-2xl bg-[#0c0d12] rounded-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden font-mono">
+              
+              {/* Windows-style Git Bash Window TitleBar */}
+              <div className="bg-[#181a23] px-4 py-2.5 flex items-center justify-between border-b border-white/5 select-none text-[11px] text-[#abb2bf]">
+                <div className="flex items-center gap-2">
+                  <Terminal 
+                    className="w-3.5 h-3.5" 
+                    style={{ color: getAccentHex(accentColor) }}
+                  />
+                  <span className="font-mono text-[#abb2bf] truncate max-w-xs md:max-w-none">
+                    MINGW64:/c/Users/Airban/projects/airban-ikonicity-portfolio
                   </span>
                 </div>
-              </div>
-
-              {/* Scrolling Log Terminal */}
-              <div className="bg-[#050816] rounded-xl p-5 border border-white/5 h-[230px] font-mono text-[10px] space-y-2 text-left overflow-y-auto">
-                {bootLogs.map((log, index) => (
-                  <div
-                    key={index}
-                    className={
-                      log.includes("SUCCESS")
-                        ? "text-[#39FF14] font-bold"
-                        : "text-[#8A9BC4]"
-                    }
+                {/* Windows-style Terminal Actions */}
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] opacity-75 hover:opacity-100 transition-all cursor-pointer" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f] opacity-75 hover:opacity-100 transition-all cursor-pointer" />
+                  <button 
+                    onClick={() => setBooting(false)}
+                    className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] opacity-75 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center group"
+                    title="Press ESC to bypass loader"
                   >
-                    {log}
-                  </div>
-                ))}
-                <div className="w-1.5 h-3.5 bg-[#39FF14] animate-pulse inline-block" />
+                    <span className="text-[6px] text-black font-bold opacity-0 group-hover:opacity-100 transition-all">×</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between mt-6 pt-3">
-                <div className="text-[9px] font-mono text-[#8A9BC4] flex items-center gap-2">
-                  <RefreshCw className="w-3 h-3 animate-spin text-[#00D4FF]" />
-                  <span>PREPARING COCKPIT AVIONICS DECK</span>
+              {/* Terminal window interior */}
+              <div className="p-4 md:p-6 space-y-5 text-[11px] md:text-xs text-[#abb2bf] leading-relaxed min-h-[350px] flex flex-col justify-between">
+                
+                {/* Scrollable command stream */}
+                <div className="space-y-4 text-left">
+                  {/* Prompt line */}
+                  <div>
+                    <span className={`font-semibold ${textAccentClass}`}>eban@Airban-Home </span>
+                    <span className="text-[#c678dd]">MINGW64 </span>
+                    <span className="text-[#e5c07b]">~/projects/airban-ikonicity-portfolio</span>
+                    <span className="text-[#56b6c2]"> (master)</span>
+                    <br />
+                    <span className="text-white">$ </span>
+                    <span className="text-white">curl -sSL https://airban-ikonicity.dev/boot.sh | bash</span>
+                  </div>
+
+                  {/* Connecting phase */}
+                  <div className="text-[10px] md:text-[11px] text-[#5c6370] space-y-0.5 select-none overflow-x-auto">
+                    <div>% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</div>
+                    <div>                                 Dload  Upload   Total   Spent    Left  Speed</div>
+                    <div className="text-[#61afef] font-semibold whitespace-pre">
+                      {`100  4132k  100  ${String(receivedKBytes).padStart(4, " ")}k    0     0  2250k      0  ${timeTotalStr}  ${timeLeftStr === "--:--:--" ? `0:00:0${Math.floor(elapsedMs / 1000)}` : `0:00:0${Math.floor(elapsedMs / 1000)}`}  ${timeLeftStr}  ${currSpeed}`}
+                    </div>
+                  </div>
+
+                  {/* Git Bash Terminal Download Output */}
+                  <div className="space-y-2 border-t border-white/5 pt-3">
+                    <div className={`font-semibold flex flex-col md:flex-row md:items-center justify-between gap-1 ${textAccentClass}`}>
+                      <span className="tracking-tight text-xs">
+                        Downloading Airban Avionics: [ {bar} ] {bootProgress}%
+                      </span>
+                      <span className="text-[10px] text-[#abb2bf] font-mono">
+                        {((bootProgress / 100) * 4.13).toFixed(2)} MB / 4.13 MB @ {bootProgress < 100 ? `${(1.8 + Math.random() * 0.4).toFixed(1)} MB/s` : "0 B/s"}
+                      </span>
+                    </div>
+
+                    {/* Step log descriptor */}
+                    <div className="flex items-center gap-2 text-[#56b6c2] text-[10px] md:text-sm">
+                      <span className="animate-ping text-[#ff605c] text-[8px]">●</span>
+                      <span className="font-mono text-white/90">{getBootLogMessage(bootProgress)}</span>
+                    </div>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setBooting(false)}
-                  className="px-3.5 py-1.5 rounded-md border border-[#39FF14]/30 hover:bg-[#39FF14]/10 text-[#39FF14] text-[9.5px] uppercase font-mono font-bold transition-all"
-                >
-                  Skip Boot Sequence [▶]
-                </button>
+
+                {/* Hotkeys / Skip button terminal style footer */}
+                <div className="pt-3 border-t border-white/5 flex items-center justify-between text-[10px] text-[#5c6370]">
+                  <div className="flex items-center gap-2">
+                    <span className="bg-white/5 px-1.5 py-0.5 rounded text-[#ff605c] font-semibold">Ctrl+C</span>
+                    <span>or</span>
+                    <span className="bg-white/5 px-1.5 py-0.5 rounded text-[#ffbd2e] font-semibold">ESC</span>
+                    <span>to bypass system loading</span>
+                  </div>
+                  <button
+                    onClick={() => setBooting(false)}
+                    onMouseEnter={() => setIsSkipHovered(true)}
+                    onMouseLeave={() => setIsSkipHovered(false)}
+                    className="px-3.5 py-1.5 rounded bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 transition-all text-[9px] uppercase font-mono tracking-wider font-bold"
+                    style={{
+                      borderColor: isSkipHovered ? `${getAccentHex(accentColor)}4d` : undefined,
+                      color: isSkipHovered ? getAccentHex(accentColor) : "#fff",
+                    }}
+                  >
+                    Skip Terminal [ ▶ ]
+                  </button>
+                </div>
+
               </div>
             </div>
           </motion.div>
@@ -749,7 +855,7 @@ export default function App() {
           className="cursor-pointer mb-6 group relative p-1.5 rounded-full border border-white/5 bg-white/[0.02] hover:bg-white/5 transition-all"
           title="Scroll to Top"
         >
-          <Logo size={24} showText={false} />
+          <Logo size={24} showText={false} accentColor={accentColor} />
           {/* Subtle neon ring indicator */}
           <div
             className="absolute inset-0 rounded-full border border-transparent group-hover:border-current animate-pulse opacity-50"
@@ -840,11 +946,13 @@ export default function App() {
           disabled={connectingWallet}
           className={`hidden md:flex items-center justify-center h-9 w-9 rounded-full transition-all border cursor-pointer ${
             walletAddress
-              ? "border-[#39FF14]/30 bg-[#39FF14]/10 text-[#39FF14]"
+              ? ""
               : "border-white/5 text-[#8A9BC4] hover:text-white hover:bg-white/5"
           }`}
           style={{
-            borderColor: walletAddress ? getAccentHex(accentColor) : "rgba(255,255,255,0.05)",
+            borderColor: walletAddress ? `${getAccentHex(accentColor)}4d` : "rgba(255,255,255,0.05)",
+            backgroundColor: walletAddress ? `${getAccentHex(accentColor)}1a` : undefined,
+            color: walletAddress ? getAccentHex(accentColor) : undefined,
           }}
           title={
             walletAddress
@@ -1024,6 +1132,7 @@ export default function App() {
         availabilityStatus={availability.status}
         isMuted={isMuted}
         onDownloadCVClick={() => setShowCVModal(true)}
+        isBooting={booting}
       />
 
       <SectionDivider
@@ -1117,7 +1226,7 @@ export default function App() {
               <div className="space-y-6">
                 {/* Embedded branded dynamic vector logo showcase from uploaded asset */}
                 <div className="flex justify-center py-6 border-b border-white/5 mb-2">
-                  <Logo size={90} showText={true} />
+                  <Logo size={90} showText={true} accentColor={accentColor} />
                 </div>
 
                 <div className="flex items-center justify-between border-b border-white/5 pb-4 font-mono">

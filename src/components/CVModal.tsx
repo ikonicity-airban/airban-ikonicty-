@@ -243,7 +243,7 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
                 onClick={handlePrint}
                 className="flex items-center gap-1.5 px-3 py-1.5 bg-[#08152e] hover:bg-slate-900 text-white rounded border border-white/10 hover:border-white/20 transition-all cursor-pointer text-[10px]"
               >
-                <Printer className="w-3.5 h-3.5 text-[#39FF14]" />
+                <Printer className={`w-3.5 h-3.5 ${textAccent}`} />
                 <span className="hidden sm:inline">PRINT / SAVE PDF</span>
               </button>
 
@@ -523,15 +523,15 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
                         </h5>
                         <ul className="list-disc pl-4 text-[12px] text-slate-300 space-y-1.5">
                           <li>
-                            <span className="print-bullet-point text-[#39FF14] font-black mr-1">•</span>
+                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
                             Designed and engineered a customizable Shopfy Creator API canvas interface allowing users to draft print merchandise orders smoothly.
                           </li>
                           <li>
-                            <span className="print-bullet-point text-[#39FF14] font-black mr-1">•</span>
+                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
                             Coordinated transactional ledger handoff loops integrating bank gateways and decentralized smart contract coin transfers.
                           </li>
                           <li>
-                            <span className="print-bullet-point text-[#39FF14] font-black mr-1">•</span>
+                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
                             Programmed headless backend Docker pipelines bridging WhatsApp chat nodes with local client CRM notification routes, moving over 15,000 requests/day.
                           </li>
                         </ul>
@@ -552,15 +552,15 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
                         </h5>
                         <ul className="list-disc pl-4 text-[12px] text-slate-300 space-y-1.5">
                           <li>
-                            <span className="print-bullet-point text-[#39FF14] font-black mr-1">•</span>
+                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
                             Refactored untyped, legacy React Native codebase to TypeScript, ensuring strict structural type integrity.
                           </li>
                           <li>
-                            <span className="print-bullet-point text-[#39FF14] font-black mr-1">•</span>
+                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
                             Implemented robust SQLite schema migration and state managers, enabling flawless offline capability for 70k+ users.
                           </li>
                           <li>
-                            <span className="print-bullet-point text-[#39FF14] font-black mr-1">•</span>
+                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
                             Optimized cross-platform media audio service handlers to reduce initialization playback latencies by 42%.
                           </li>
                         </ul>
@@ -581,11 +581,11 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
                         </h5>
                         <ul className="list-disc pl-4 text-[12px] text-slate-300 space-y-1.5">
                           <li>
-                            <span className="print-bullet-point text-[#39FF14] font-black mr-1">•</span>
+                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
                             Supervised a developers' squad designing active organizational assets and blockchain-focused portal interfaces.
                           </li>
                           <li>
-                            <span className="print-bullet-point text-[#39FF14] font-black mr-1">•</span>
+                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
                             Configured real-time webhook listener layers and automated multi-sig Telegram bot commands to secure token management.
                           </li>
                         </ul>

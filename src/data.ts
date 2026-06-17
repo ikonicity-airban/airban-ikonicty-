@@ -3,11 +3,11 @@ import { Project, TimelineItem, SkillCategory, PhilosophyPillar } from './types'
 export const portfolioData = {
   name: "Eban Godwin Ikoni",
   brandName: "Airban Ikonicity",
-  tagline: "Problem Solver · Systems Builder · AI Engineer",
+  tagline: "Software Engineer | Problem Solver",
   email: "ikonicityairban@gmail.com",
-  phone: "08169862852",
-  github: "https://github.com/ikonicity-airban",
-  address: "Nsukka Enugu State",
+  phone: "+234 816 986 2852",
+  github: "https://github.com/airban-ikonicty",
+  address: "Enugu, Nigeria · Remote Worldwide",
   
   pullQuote: "You have to find your own way. Not every problem has the same solution, and most problems have more than one.",
   
@@ -145,7 +145,8 @@ export const portfolioData = {
         { label: "Live Site", url: "https://geekcreations.vercel.app" },
         { label: "Case Study", url: "#" }
       ],
-      meta: "TX_RATE: 1.8s // GLOBAL_DELIVERY: ENABLED"
+      meta: "TX_RATE: 1.8s // GLOBAL_DELIVERY: ENABLED",
+      image: "/src/assets/images/geek_creations_mock_1781656794120.jpg"
     },
     {
       id: "icatholic-igbo",
@@ -160,7 +161,8 @@ export const portfolioData = {
         { label: "Live Site", url: "https://icatholicigbo.com" },
         { label: "Play Store", url: "#" }
       ],
-      meta: "DL_COUNT: 70K+ // UPTIME: 99.99%"
+      meta: "DL_COUNT: 70K+ // UPTIME: 99.99%",
+      image: "/src/assets/images/icatholic_igbo_mock_1781656745123.jpg"
     },
     {
       id: "biddo",
@@ -175,7 +177,8 @@ export const portfolioData = {
         { label: "Web App", url: "https://web.biddo.info" },
         { label: "App Platform", url: "#" }
       ],
-      meta: "REAL_TIME: active // DB_LATENCY: 12ms"
+      meta: "REAL_TIME: active // DB_LATENCY: 12ms",
+      image: "/src/assets/images/biddo_mock_1781656772702.jpg"
     },
     {
       id: "estc-tourism",
@@ -189,7 +192,8 @@ export const portfolioData = {
       links: [
         { label: "Live Site", url: "https://vite-tour.netlify.app/" }
       ],
-      meta: "REGION: ENUGU // SOLO_DEV"
+      meta: "REGION: ENUGU // SOLO_DEV",
+      image: "/src/assets/images/estc_tourism_mock_1781656783472.jpg"
     },
     {
       id: "heartzibah-shop",
@@ -203,7 +207,8 @@ export const portfolioData = {
       links: [
         { label: "Archived Portal", url: "#" }
       ],
-      meta: "STATUS: COMPLETED // ARCHIVED"
+      meta: "STATUS: COMPLETED // ARCHIVED",
+      image: "/src/assets/images/heartzibah_shop_mock_1781659440604.jpg"
     },
     {
       id: "rabbai",
@@ -217,7 +222,8 @@ export const portfolioData = {
       links: [
         { label: "Project Brief", url: "#" }
       ],
-      meta: "AI_LATENCY: 145ms"
+      meta: "AI_LATENCY: 145ms",
+      image: "/src/assets/images/rabbai_mock_1781659459219.jpg"
     },
     {
       id: "waplug",
@@ -231,7 +237,8 @@ export const portfolioData = {
       links: [
         { label: "Live Site", url: "https://plugins-wa.onrender.com" }
       ],
-      meta: "DISPATCHES: 15K/day"
+      meta: "DISPATCHES: 15K/day",
+      image: "/src/assets/images/waplug_mock_1781659368567.jpg"
     },
     {
       id: "sofe-platform",
@@ -245,7 +252,8 @@ export const portfolioData = {
       links: [
         { label: "Live Site", url: "https://sofegroup.com" }
       ],
-      meta: "DOMAIN: sofegroup.com"
+      meta: "DOMAIN: sofegroup.com",
+      image: "/src/assets/images/sofe_platform_mock_1781656729844.jpg"
     },
     {
       id: "oyadrop",
@@ -259,7 +267,8 @@ export const portfolioData = {
       links: [
         { label: "Live Site", url: "https://oyadrop.com" }
       ],
-      meta: "LATENCY: 54ms // GPS: LOCKED"
+      meta: "LATENCY: 54ms // GPS: LOCKED",
+      image: "/src/assets/images/oyadrop_mock_1781659380018.jpg"
     },
     {
       id: "eb-pathway",
@@ -273,7 +282,8 @@ export const portfolioData = {
       links: [
         { label: "Live Site", url: "https://ebpathway.netlify.net" }
       ],
-      meta: "WORKFLOWS: STRICT"
+      meta: "WORKFLOWS: STRICT",
+      image: "/src/assets/images/eb_pathway_mock_1781659393288.jpg"
     },
     {
       id: "inextai",
@@ -287,7 +297,8 @@ export const portfolioData = {
       links: [
         { label: "Web3 App", url: "#" }
       ],
-      meta: "AUTHENTICATION: II // PROTOCOL: ICP"
+      meta: "AUTHENTICATION: II // PROTOCOL: ICP",
+      image: "/src/assets/images/inext_ai_mock_1781656759832.jpg"
     }
   ] as Project[],
 

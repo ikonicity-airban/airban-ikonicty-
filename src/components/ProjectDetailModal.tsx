@@ -117,6 +117,25 @@ export default function ProjectDetailModal({ isOpen, onClose, project, accentCol
 
             {/* Main Interactive Deck */}
             <div className="p-6 md:p-8 space-y-6 flex-1 overflow-y-auto max-h-[75vh]">
+              {/* Project Image Banner */}
+              {project.image && (
+                <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-slate-950 group/img">
+                  {/* Image scanline effect */}
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-1/2 w-full top-0 left-0 animate-[scanline_4s_linear_infinite] pointer-events-none z-10 opacity-40 md:opacity-60" />
+                  <img
+                    src={project.image}
+                    alt={`${project.title} system interface`}
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/img:scale-102"
+                  />
+                  {/* Subtle vignette/glitch shadow */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none opacity-80" />
+                  <span className="absolute bottom-3 right-3 font-mono text-[7px] text-white/50 px-2 py-0.5 rounded bg-slate-950/80 border border-white/5 tracking-wider uppercase">
+                    SYS_FEED_LOCKED: SCREEN_CAP_01
+                  </span>
+                </div>
+              )}
+
               {/* Project Title Block & Sub-system Category */}
               <div>
                 <div className="flex items-center gap-3 mb-2">

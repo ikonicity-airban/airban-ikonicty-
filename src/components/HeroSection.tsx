@@ -35,9 +35,10 @@ interface HeroSectionProps {
   availabilityStatus?: string;
   isMuted?: boolean;
   onDownloadCVClick?: () => void;
+  isBooting?: boolean;
 }
 
-export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, availabilityStatus, isMuted = true, onDownloadCVClick }: HeroSectionProps) {
+export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, availabilityStatus, isMuted = true, onDownloadCVClick, isBooting = false }: HeroSectionProps) {
   const [scrollY, setScrollY] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bgVideoRef = useRef<HTMLVideoElement>(null);
@@ -54,13 +55,14 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
     setCurrentBgVideo(bgVideoLoopToUse);
   }, [bgVideoLoopToUse]);
 
-  // Rotate subtexts swap animation every 4 seconds
+  // Rotate subtexts swap animation every 4 seconds once booted
   useEffect(() => {
+    if (isBooting) return;
     const timer = setInterval(() => {
       setActiveSubtextIndex((prev) => (prev === 0 ? 1 : 0));
     }, 4000);
     return () => clearInterval(timer);
-  }, []);
+  }, [isBooting]);
 
   // Safe background video play & browser autoplay blocker workaround
   useEffect(() => {
@@ -258,6 +260,12 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
     }
   };
 
+  if (isBooting) {
+    return (
+      <div id="home" className="min-h-screen bg-[#050816] w-full relative z-30" />
+    );
+  }
+
   return (
     <section 
       id="home"
@@ -379,9 +387,15 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
         
         {/* CHARACTER IMAGE: Centered Horizontally, Bottom Aligned, 90vh */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 55 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{
+            type: "spring",
+            stiffness: 170,
+            damping: 24,
+            mass: 0.95,
+            delay: 0.75,
+          }}
           className="hero-avatar pointer-events-auto"
           style={{
             transform: `translateX(-50%) translateY(${charParallaxY}px)`,
@@ -407,7 +421,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.75, delay: 0.95, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-1"
           >
             <span className="font-display font-black text-[#CAD5EE] block text-[9.5px] uppercase tracking-[0.25em]">
@@ -423,7 +437,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
               Airban<br />Ikonicity
             </h1>
             <p 
-              className="font-accent font-bold leading-normal text-[#39FF14]"
+              className={`font-accent font-bold leading-normal ${textAccentClass}`}
               style={{ fontSize: 'clamp(1rem, 1.8vw, 1.4rem)' }}
             >
               Full-Stack Engineer
@@ -443,10 +457,19 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
                   className="relative pl-7 text-left group w-full"
                 >
                   {/* 6px circle bullet */}
-                  <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#39FF14] shadow-[0_0_8px_#39FF14]" />
+                  <span 
+                    className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full" 
+                    style={{ 
+                      backgroundColor: getAccentHex(accentColor),
+                      boxShadow: `0 0 8px ${getAccentHex(accentColor)}`
+                    }}
+                  />
                   
                   {/* Optional horizontally connecting neon line */}
-                  <div className="absolute left-2 top-2 w-[60px] h-[1px] bg-[#39FF14] opacity-40 group-hover:w-[75px] transition-all duration-300" />
+                  <div 
+                    className="absolute left-2 top-2 w-[60px] h-[1px] opacity-40 group-hover:w-[75px] transition-all duration-300" 
+                    style={{ backgroundColor: getAccentHex(accentColor) }}
+                  />
                   
                   <h3 className="font-accent font-bold text-[#F0F4FF] text-[15px] leading-none mb-1.5 pl-[68px]">
                     Problem Solver
@@ -465,10 +488,19 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
                   className="relative pl-7 text-left group w-full"
                 >
                   {/* 6px circle bullet */}
-                  <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-[#39FF14] shadow-[0_0_8px_#39FF14]" />
+                  <span 
+                    className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full" 
+                    style={{ 
+                      backgroundColor: getAccentHex(accentColor),
+                      boxShadow: `0 0 8px ${getAccentHex(accentColor)}`
+                    }}
+                  />
                   
                   {/* Optional horizontally connecting neon line */}
-                  <div className="absolute left-2 top-2 w-[60px] h-[1px] bg-[#39FF14] opacity-40 group-hover:w-[75px] transition-all duration-300" />
+                  <div 
+                    className="absolute left-2 top-2 w-[60px] h-[1px] opacity-40 group-hover:w-[75px] transition-all duration-300" 
+                    style={{ backgroundColor: getAccentHex(accentColor) }}
+                  />
                   
                   <h3 className="font-accent font-bold text-[#F0F4FF] text-[15px] leading-none mb-1.5 pl-[68px]">
                     Systems Builder
@@ -491,7 +523,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
           <motion.div 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.75, delay: 1.15, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-4"
           >
             <h2 
@@ -499,7 +531,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
               style={{ fontSize: 'clamp(1.4rem, 2.5vw, 2.2rem)' }}
             >
               Building Intelligent<br />
-              <span className="text-[#39FF14]">Systems</span>
+              <span className={textAccentClass}>Systems</span>
             </h2>
             <p className="font-mono text-[12.5px] leading-relaxed text-[#CAD5EE] max-w-sm">
               Scalable platforms, AI automation, and software that solves complex problems.
@@ -511,7 +543,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.8 }}
+              transition={{ duration: 0.5, delay: 1.35 }}
               className="flex items-center gap-4.5"
             >
               <motion.button 
@@ -557,16 +589,22 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.9 }}
+              transition={{ duration: 0.4, delay: 1.45 }}
               className="flex items-center gap-2 pl-1"
             >
               <span className="relative flex h-2 w-2">
-                <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                  availabilityStatus === 'busy' ? 'bg-amber-400' : 'bg-[#39FF14]'
-                }`} />
-                <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                  availabilityStatus === 'busy' ? 'bg-amber-400' : 'bg-[#39FF14]'
-                }`} />
+                <span 
+                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                    availabilityStatus === 'busy' ? 'bg-amber-400' : ''
+                  }`} 
+                  style={{ backgroundColor: availabilityStatus === 'busy' ? undefined : getAccentHex(accentColor) }}
+                />
+                <span 
+                  className={`relative inline-flex rounded-full h-2 w-2 ${
+                    availabilityStatus === 'busy' ? 'bg-amber-400' : ''
+                  }`} 
+                  style={{ backgroundColor: availabilityStatus === 'busy' ? undefined : getAccentHex(accentColor) }}
+                />
               </span>
               <span className="font-mono text-[11px] font-bold text-[#8A9BC4] uppercase tracking-wider">
                 ● {availabilityStatus === 'busy' ? 'Busy building systems' : 'Available for work'}
@@ -596,7 +634,15 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
 
         {/* Character image / Avatar above text (86vw width) with parallax scroll translation */}
         <motion.div 
-          variants={itemVariants}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 170,
+            damping: 24,
+            mass: 0.95,
+            delay: 0.75,
+          }}
           className="relative w-[86vw] flex items-center justify-center overflow-hidden !mt-0 !mb-0"
         >
           <div 
@@ -604,7 +650,13 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
             style={{ transform: `translateY(${scrollY * 0.12}px)` }}
           >
             {/* Central circular glow backdrop */}
-            <div className="absolute inset-0 m-auto w-[184px] h-[184px] rounded-full border border-[#39FF14]/15 bg-[#39FF14]/5 filter blur-md animate-pulse" />
+            <div 
+              className="absolute inset-0 m-auto w-[184px] h-[184px] rounded-full border filter blur-md animate-pulse" 
+              style={{ 
+                borderColor: `${getAccentHex(accentColor)}26`, 
+                backgroundColor: `${getAccentHex(accentColor)}0d` 
+              }}
+            />
             
             <img 
               src={robotAvatar} 
@@ -613,7 +665,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
               style={{
                 maskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)',
                 WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)',
-                filter: 'drop-shadow(0 0 20px rgba(57, 255, 20, 0.15))'
+                filter: `drop-shadow(0 0 20px ${getAccentRgba(accentColor, 0.15)})`
               }}
             />
           </div>
@@ -672,7 +724,10 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
                   transition={{ duration: 0.4 }}
                   className="flex gap-2.5 items-start w-full"
                 >
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#39FF14] shrink-0" />
+                  <span 
+                    className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" 
+                    style={{ backgroundColor: getAccentHex(accentColor) }}
+                  />
                   <div>
                     <h4 className="font-accent font-bold text-white text-[12px]">Problem Solver</h4>
                     <p className="font-mono text-[10px] text-[#8A9BC4]">Engineering solutions from first principles.</p>
@@ -687,7 +742,10 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
                   transition={{ duration: 0.4 }}
                   className="flex gap-2.5 items-start w-full"
                 >
-                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-[#39FF14] shrink-0" />
+                  <span 
+                    className="mt-1.5 w-1.5 h-1.5 rounded-full shrink-0" 
+                    style={{ backgroundColor: getAccentHex(accentColor) }}
+                  />
                   <div>
                     <h4 className="font-accent font-bold text-white text-[12px]">Systems Builder</h4>
                     <p className="font-mono text-[10px] text-[#8A9BC4]">From architecture to production deployment.</p>
@@ -704,7 +762,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
           className="w-full space-y-4 px-2 mt-4 pb-12"
         >
           <h2 className="text-white text-lg font-display font-black leading-tight uppercase">
-            Building Intelligent <span className="text-[#39FF14]">Systems</span>
+            Building Intelligent <span className={textAccentClass}>Systems</span>
           </h2>
           <p className="font-mono text-[11px] text-[#CAD5EE] max-w-sm mx-auto leading-relaxed">
             Scalable platforms, AI automation, and software that solves complex problems.
@@ -712,12 +770,18 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
 
           <div className="flex items-center justify-center gap-2 pt-1">
             <span className="relative flex h-2 w-2">
-              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                availabilityStatus === 'busy' ? 'bg-amber-400' : 'bg-[#39FF14]'
-              }`} />
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${
-                availabilityStatus === 'busy' ? 'bg-amber-400' : 'bg-[#39FF14]'
-              }`} />
+              <span 
+                className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                  availabilityStatus === 'busy' ? 'bg-amber-400' : ''
+                }`} 
+                style={{ backgroundColor: availabilityStatus === 'busy' ? undefined : getAccentHex(accentColor) }}
+              />
+              <span 
+                className={`relative inline-flex rounded-full h-2 w-2 ${
+                  availabilityStatus === 'busy' ? 'bg-amber-400' : ''
+                }`} 
+                style={{ backgroundColor: availabilityStatus === 'busy' ? undefined : getAccentHex(accentColor) }}
+              />
             </span>
             <span className="font-mono text-[10px] font-bold text-[#8A9BC4] uppercase tracking-wider">
               {availabilityStatus === 'busy' ? 'Busy building systems' : 'Available for work'}
@@ -732,17 +796,20 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
       <motion.div 
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.85, delay: 1.65, ease: [0.16, 1, 0.3, 1] }}
         className="w-full absolute bottom-0 left-0 right-0 z-40 transform translate-y-1/2 mb-10 md:mb-0"
       >
         <div className="max-w-5xl mx-auto px-6">
           <div 
             className="py-3 sm:py-0 h-auto sm:h-24 bg-[#080D1F]/95 backdrop-blur-[12px] rounded-2xl border flex items-center justify-around overflow-visible shadow-[0_15px_30px_rgba(5,8,22,0.95)]"
-            style={{ borderColor: 'rgba(57, 255, 20, 0.15)' }}
+            style={{ borderColor: getAccentRgba(accentColor, 0.15) }}
           >
             
             {/* Top Glow bar line */}
-            <div className={`absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#39FF14] to-transparent opacity-45`} />
+            <div 
+              className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent to-transparent opacity-45" 
+              style={{ backgroundImage: `linear-gradient(to right, transparent, ${getAccentHex(accentColor)}, transparent)` }}
+            />
             
             {[
               { num: "4+", label: "Years Experience" },
@@ -753,10 +820,13 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
                 
                 {/* 1px vertical divider green indicator line centered */}
                 {i > 0 && (
-                  <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-10 bg-[#39FF14]/20" />
+                  <div 
+                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[1px] h-10" 
+                    style={{ backgroundColor: `${getAccentHex(accentColor)}33` }}
+                  />
                 )}
 
-                <span className="block font-display font-black leading-none text-[#39FF14]"
+                <span className={`block font-display font-black leading-none ${textAccentClass}`}
                   style={{ fontSize: 'clamp(1.1rem, 3vw, 2.3rem)' }}
                 >
                   {st.num}
@@ -791,7 +861,8 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="relative max-w-4xl w-full aspect-video bg-[#080D1F] border border-[#39FF14]/25 shadow-2xl rounded-2xl overflow-hidden"
+              className="relative max-w-4xl w-full aspect-video bg-[#080D1F] border shadow-2xl rounded-2xl overflow-hidden"
+              style={{ borderColor: `${getAccentHex(accentColor)}40` }}
               onClick={(e) => e.stopPropagation()}
             >
               <button 

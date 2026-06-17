@@ -4,7 +4,7 @@ import { Send, Mail, Phone, MapPin, Loader2, Check, AlertCircle, Github, Linkedi
 import { db } from '../firebase';
 import { collection, addDoc } from 'firebase/firestore';
 
-import { getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../utils';
+import { getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass, getAccentRgba } from '../utils';
 
 interface ContactSectionProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';
@@ -30,6 +30,14 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
 
   // Honeypot spam protection
   const [honeypot, setHoneypot] = useState('');
+
+  // Interactive style state tracking
+  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [isSubmitHovered, setIsSubmitHovered] = useState(false);
+  const [hoveredEmail, setHoveredEmail] = useState(false);
+  const [hoveredWhatsapp, setHoveredWhatsapp] = useState(false);
+  const [hoveredTelegram, setHoveredTelegram] = useState(false);
+  const [hoveredSocial, setHoveredSocial] = useState<number | null>(null);
 
   // Add system transmission logs
   const addLog = (message: string) => {
@@ -190,16 +198,20 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
               </p>
             </div>
 
-            {/* Main Form Container with border flash animations based on submit status */}
+             {/* Main Form Container with border flash animations based on submit status */}
             <form 
               onSubmit={handleSubmit} 
               className={`p-6 sm:p-8 rounded-xl bg-[#080D1F] border transition-all duration-300 text-left space-y-5 ${
                 status === 'success' 
-                  ? 'border-[#39FF14] shadow-[0_0_20px_rgba(57,255,20,0.15)] bg-[#050B15]' 
+                  ? 'bg-[#050B15]' 
                   : status === 'error' 
                     ? 'border-[#FF3B5C] shadow-[0_0_20px_rgba(255,59,92,0.15)] bg-[#12050B]' 
                     : 'border-[#1A2544]'
               }`}
+              style={{
+                borderColor: status === 'success' ? getAccentHex(accentColor) : undefined,
+                boxShadow: status === 'success' ? `0 0 20px ${getAccentRgba(accentColor, 0.15)}` : undefined
+              }}
             >
               {/* Spam protection Honeypot */}
               <input 
@@ -215,7 +227,7 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Name */}
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-mono font-bold tracking-widest text-[#39FF14] uppercase">
+                  <label className={`block text-[9px] font-mono font-bold tracking-widest ${textAccentClass} uppercase`}>
                     // YOUR NAME
                   </label>
                   <input
@@ -224,11 +236,17 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
                     placeholder="Eban Godwin"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
+                    onFocus={() => setFocusedField('name')}
+                    onBlur={() => setFocusedField(null)}
                     className={`w-full bg-[#080D1F] border rounded px-4 py-3 text-xs text-[#F0F4FF] font-mono outline-none transition-all placeholder-[#4A5A80] ${
                       formErrors.name 
                         ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500/20' 
-                        : 'border-[#1A2544] focus:border-[#39FF14]/50 focus:ring-1 focus:ring-[#39FF14]/10'
+                        : 'border-[#1A2544]'
                     }`}
+                    style={!formErrors.name && focusedField === 'name' ? {
+                      borderColor: getAccentHex(accentColor),
+                      boxShadow: `0 0 0 1px ${getAccentHex(accentColor)}`
+                    } : undefined}
                   />
                   {formErrors.name && (
                     <span className="block font-mono text-[10px] text-[#FF3B5C] mt-1">{formErrors.name}</span>
@@ -237,7 +255,7 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
 
                 {/* Email */}
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-mono font-bold tracking-widest text-[#39FF14] uppercase">
+                  <label className={`block text-[9px] font-mono font-bold tracking-widest ${textAccentClass} uppercase`}>
                     // EMAIL ADDRESS
                   </label>
                   <input
@@ -246,11 +264,17 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
                     placeholder="you@company.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
                     className={`w-full bg-[#080D1F] border rounded px-4 py-3 text-xs text-[#F0F4FF] font-mono outline-none transition-all placeholder-[#4A5A80] ${
                       formErrors.email 
                         ? 'border-red-500/50 focus:border-red-500 focus:ring-1 focus:ring-red-500/20' 
-                        : 'border-[#1A2544] focus:border-[#39FF14]/50 focus:ring-1 focus:ring-[#39FF14]/10'
+                        : 'border-[#1A2544]'
                     }`}
+                    style={!formErrors.email && focusedField === 'email' ? {
+                      borderColor: getAccentHex(accentColor),
+                      boxShadow: `0 0 0 1px ${getAccentHex(accentColor)}`
+                    } : undefined}
                   />
                   {formErrors.email && (
                     <span className="block font-mono text-[10px] text-[#FF3B5C] mt-1">{formErrors.email}</span>
@@ -261,13 +285,19 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Subject Dropdown */}
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-mono font-bold tracking-widest text-[#39FF14] uppercase">
+                  <label className={`block text-[9px] font-mono font-bold tracking-widest ${textAccentClass} uppercase`}>
                     // SUBJECT
                   </label>
                   <select
                     value={formData.subject}
                     onChange={(e) => handleInputChange('subject', e.target.value)}
-                    className="w-full bg-[#080D1F] border border-[#1A2544] rounded px-4 py-3 text-xs text-[#F0F4FF] font-mono outline-none transition-all focus:border-[#39FF14]/50"
+                    onFocus={() => setFocusedField('subject')}
+                    onBlur={() => setFocusedField(null)}
+                    className="w-full bg-[#080D1F] border border-[#1A2544] rounded px-4 py-3 text-xs text-[#F0F4FF] font-mono outline-none transition-all"
+                    style={focusedField === 'subject' ? {
+                      borderColor: getAccentHex(accentColor),
+                      boxShadow: `0 0 0 1px ${getAccentHex(accentColor)}`
+                    } : undefined}
                   >
                     <option value="Project Inquiry">Project Inquiry</option>
                     <option value="Freelance / Contract Work">Freelance / Contract Work</option>
@@ -281,13 +311,19 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
 
                 {/* Budget Range (optional) */}
                 <div className="space-y-2">
-                  <label className="block text-[9px] font-mono font-bold tracking-widest text-[#39FF14] uppercase">
+                  <label className={`block text-[9px] font-mono font-bold tracking-widest ${textAccentClass} uppercase`}>
                     // BUDGET RANGE (OPTIONAL)
                   </label>
                   <select
                     value={formData.budget}
                     onChange={(e) => handleInputChange('budget', e.target.value)}
-                    className="w-full bg-[#080D1F] border border-[#1A2544] rounded px-4 py-3 text-xs text-[#F0F4FF] font-mono outline-none transition-all focus:border-[#39FF14]/50"
+                    onFocus={() => setFocusedField('budget')}
+                    onBlur={() => setFocusedField(null)}
+                    className="w-full bg-[#080D1F] border border-[#1A2544] rounded px-4 py-3 text-xs text-[#F0F4FF] font-mono outline-none transition-all"
+                    style={focusedField === 'budget' ? {
+                      borderColor: getAccentHex(accentColor),
+                      boxShadow: `0 0 0 1px ${getAccentHex(accentColor)}`
+                    } : undefined}
                   >
                     <option value="Under $500">Under $500</option>
                     <option value="$500 – $2,000">$500 – $2,000</option>
@@ -301,7 +337,7 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
 
               {/* Message text area */}
               <div className="space-y-2">
-                <label className="block text-[9px] font-mono font-bold tracking-widest text-[#39FF14] uppercase">
+                <label className={`block text-[9px] font-mono font-bold tracking-widest ${textAccentClass} uppercase`}>
                   // MESSAGE
                 </label>
                 <textarea
@@ -310,11 +346,17 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
                   placeholder="Tell me about the problem you're trying to solve..."
                   value={formData.message}
                   onChange={(e) => handleInputChange('message', e.target.value)}
+                  onFocus={() => setFocusedField('message')}
+                  onBlur={() => setFocusedField(null)}
                   className={`w-full bg-[#080D1F] border rounded px-4 py-3 text-xs text-[#F0F4FF] font-mono outline-none transition-all placeholder-[#4A5A80] resize-none ${
                     formErrors.message 
                       ? 'border-red-500/50 focus:border-red-500' 
-                      : 'border-[#1A2544] focus:border-[#39FF14]/50'
+                      : 'border-[#1A2544]'
                   }`}
+                  style={!formErrors.message && focusedField === 'message' ? {
+                    borderColor: getAccentHex(accentColor),
+                    boxShadow: `0 0 0 1px ${getAccentHex(accentColor)}`
+                  } : undefined}
                 />
                 {formErrors.message && (
                   <span className="block font-mono text-[10px] text-[#FF3B5C] mt-1">{formErrors.message}</span>
@@ -335,15 +377,29 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
               <button
                 type="submit"
                 disabled={status === 'transmitting'}
+                onMouseEnter={() => setIsSubmitHovered(true)}
+                onMouseLeave={() => setIsSubmitHovered(false)}
                 className={`w-full h-[52px] rounded flex items-center justify-center font-accent font-extrabold uppercase tracking-widest text-xs transition-all duration-200 cursor-pointer ${
                   status === 'transmitting'
-                    ? 'bg-[#39FF14]/40 text-[#050816] cursor-not-allowed'
+                    ? 'text-[#050816] cursor-not-allowed'
                     : status === 'success'
-                      ? 'bg-[#39FF14] text-[#050816] shadow-[0_0_15px_rgba(57,255,20,0.4)]'
+                      ? 'text-[#050816]'
                       : status === 'error'
-                        ? 'bg-[#FF3B5C] text-white'
-                        : 'bg-[#39FF14] hover:bg-[#39FF14]/90 text-[#050816] hover:shadow-[0_0_18px_rgba(57,255,20,0.3)] shadow-md'
+                        ? 'text-white bg-[#FF3B5C]'
+                        : 'text-[#050816]'
                 }`}
+                style={status !== 'error' ? {
+                  backgroundColor: status === 'transmitting'
+                    ? `${getAccentHex(accentColor)}66`
+                    : status === 'success'
+                      ? getAccentHex(accentColor)
+                      : (isSubmitHovered ? `${getAccentHex(accentColor)}e6` : getAccentHex(accentColor)),
+                  boxShadow: status === 'transmitting'
+                    ? 'none'
+                    : status === 'success'
+                      ? `0 0 15px ${getAccentRgba(accentColor, 0.4)}`
+                      : (isSubmitHovered ? `0 0 18px ${getAccentRgba(accentColor, 0.3)}` : 'none')
+                } : undefined}
               >
                 {status === 'transmitting' ? (
                   <div className="flex items-center gap-2">
@@ -372,12 +428,21 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
           <div className="order-1 lg:order-2 lg:col-span-5 space-y-8 text-left">
             
             {/* Availability Status Card */}
-            <div className="p-6 rounded-xl border border-l-4 bg-[#080D1F] border-[#1A2544] border-l-[#39FF14] space-y-4 mb-4 lg:mb-0">
+            <div 
+              className="p-6 rounded-xl border border-l-4 bg-[#080D1F] border-[#1A2544] space-y-4 mb-4 lg:mb-0"
+              style={{ borderLeftColor: getAccentHex(accentColor) }}
+            >
               <div className="flex items-center gap-3">
                 {/* Animated Pulsing Status Dot */}
                 <div className="relative flex h-2.5 w-2.5 shrink-0">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#39FF14] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#39FF14]"></span>
+                  <span 
+                    className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                    style={{ backgroundColor: getAccentHex(accentColor) }}
+                  />
+                  <span 
+                    className="relative inline-flex rounded-full h-2.5 w-2.5"
+                    style={{ backgroundColor: getAccentHex(accentColor) }}
+                  />
                 </div>
                 <h3 className="font-display font-black text-xs uppercase tracking-wider text-white">
                   Available for New Engagements
@@ -402,12 +467,18 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
               
               {/* EMAIL */}
               <div className="space-y-1.5 font-mono">
-                <span className="block text-[9.5px] text-[#39FF14] tracking-widest font-extrabold uppercase">
+                <span 
+                  className="block text-[9.5px] tracking-widest font-extrabold uppercase"
+                  style={{ color: getAccentHex(accentColor) }}
+                >
                   // EMAIL
                 </span>
                 <a 
                   href="mailto:ikonicityairban@gmail.com" 
-                  className="block text-sm text-[#F0F4FF] hover:text-[#39FF14] hover:underline transition-all duration-150"
+                  onMouseEnter={() => setHoveredEmail(true)}
+                  onMouseLeave={() => setHoveredEmail(false)}
+                  className="block text-sm text-[#F0F4FF] hover:underline transition-all duration-150"
+                  style={{ color: hoveredEmail ? getAccentHex(accentColor) : undefined }}
                 >
                   ikonicityairban@gmail.com
                 </a>
@@ -415,14 +486,20 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
 
               {/* WHATSAPP */}
               <div className="space-y-1.5 font-mono">
-                <span className="block text-[9.5px] text-[#39FF14] tracking-widest font-extrabold uppercase">
+                <span 
+                  className="block text-[9.5px] tracking-widest font-extrabold uppercase"
+                  style={{ color: getAccentHex(accentColor) }}
+                >
                   // WHATSAPP
                 </span>
                 <a 
                   href="https://wa.me/2348169862852" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="block text-sm text-[#F0F4FF] hover:text-[#39FF14] hover:underline transition-all duration-150"
+                  onMouseEnter={() => setHoveredWhatsapp(true)}
+                  onMouseLeave={() => setHoveredWhatsapp(false)}
+                  className="block text-sm text-[#F0F4FF] hover:underline transition-all duration-150"
+                  style={{ color: hoveredWhatsapp ? getAccentHex(accentColor) : undefined }}
                 >
                   +234 816 986 2852
                 </a>
@@ -430,14 +507,20 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
 
               {/* TELEGRAM */}
               <div className="space-y-1.5 font-mono">
-                <span className="block text-[9.5px] text-[#39FF14] tracking-widest font-extrabold uppercase">
+                <span 
+                  className="block text-[9.5px] tracking-widest font-extrabold uppercase"
+                  style={{ color: getAccentHex(accentColor) }}
+                >
                   // TELEGRAM
                 </span>
                 <a 
                   href="https://t.me/ikonicity_airban" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="block text-sm text-[#F0F4FF] hover:text-[#39FF14] hover:underline transition-all duration-150"
+                  onMouseEnter={() => setHoveredTelegram(true)}
+                  onMouseLeave={() => setHoveredTelegram(false)}
+                  className="block text-sm text-[#F0F4FF] hover:underline transition-all duration-150"
+                  style={{ color: hoveredTelegram ? getAccentHex(accentColor) : undefined }}
                 >
                   @ikonicity_airban
                 </a>
@@ -450,7 +533,10 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
 
             {/* Social Links Buttons Row */}
             <div className="space-y-3">
-              <span className="block font-mono text-[9px] tracking-widest text-[#39FF14] font-bold uppercase">
+              <span 
+                className="block font-mono text-[9px] tracking-widest font-bold uppercase"
+                style={{ color: getAccentHex(accentColor) }}
+              >
                 // NETWORK TERMINALS
               </span>
               <div className="flex flex-wrap gap-2.5">
@@ -466,7 +552,16 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
                     href={social.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-10 h-10 border border-[#1A2544] rounded font-accent flex items-center justify-center text-[#8A9BC4] hover:bg-gradient-to-br hover:from-white/0 hover:to-[#39FF14]/5 hover:border-[#39FF14] hover:text-[#39FF14] transition-all duration-200"
+                    onMouseEnter={() => setHoveredSocial(idx)}
+                    onMouseLeave={() => setHoveredSocial(null)}
+                    className="w-10 h-10 border border-[#1A2544] rounded font-accent flex items-center justify-center text-[#8A9BC4] transition-all duration-200"
+                    style={{
+                      borderColor: hoveredSocial === idx ? getAccentHex(accentColor) : undefined,
+                      color: hoveredSocial === idx ? getAccentHex(accentColor) : undefined,
+                      backgroundImage: hoveredSocial === idx 
+                        ? `linear-gradient(to bottom right, transparent, ${getAccentHex(accentColor)}0d)` 
+                        : undefined
+                    }}
                     title={social.name}
                   >
                     {social.icon}

@@ -148,7 +148,7 @@ export default function FooterSection({ accentColor, onOpenAdmin, availabilitySt
             </div>
 
             <div className="flex items-center gap-3">
-              <Logo size={40} showText={false} glow={true} />
+              <Logo size={40} showText={false} glow={true} accentColor={accentColor} />
               <div className="text-left">
                 <span className="font-display font-black text-white text-base tracking-[0.25em] leading-none uppercase block">
                   AIRBAN

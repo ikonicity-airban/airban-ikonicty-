@@ -22,6 +22,33 @@ export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth();
 export const googleProvider = new GoogleAuthProvider();
 
+// Graceful safety net for Firebase iframe/ad-blocker network restrictions
+if (typeof window !== 'undefined') {
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason;
+    if (reason && (
+      (reason.message && reason.message.includes('auth/network-request-failed')) ||
+      (reason.code && reason.code.includes('auth/network-request-failed')) ||
+      String(reason).includes('auth/network-request-failed')
+    )) {
+      console.warn('[Firebase-SafeNet] Gracefully absorbed iframe-blocked Firebase Auth network request rejection.');
+      event.preventDefault();
+    }
+  });
+
+  window.addEventListener('error', (event) => {
+    const error = event.error;
+    const msg = event.message;
+    if (
+      (error && error.message && error.message.includes('auth/network-request-failed')) ||
+      (msg && msg.includes('auth/network-request-failed'))
+    ) {
+      console.warn('[Firebase-SafeNet] Gracefully absorbed iframe-blocked Firebase Auth network error.');
+      event.preventDefault();
+    }
+  });
+}
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',
