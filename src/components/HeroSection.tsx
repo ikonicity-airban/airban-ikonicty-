@@ -46,7 +46,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
   const [showShowreel, setShowShowreel] = useState(false);
   const [activeSubtextIndex, setActiveSubtextIndex] = useState(0);
 
-  const defaultBgVideo = "https://res.cloudinary.com/ikonicity-airban/video/upload/090b0b2e549c157f607c0cec73221888.mp4";
+  const defaultBgVideo = "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709867/vecteezy_neon-city-ai-generated-ai-generative_31698896_w8zwsf_1_bdio5w.mp4";
   const bgVideoLoopToUse = heroBgVideoUrl || defaultBgVideo;
   const [currentBgVideo, setCurrentBgVideo] = useState(bgVideoLoopToUse);
 
@@ -103,9 +103,9 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
   }, [currentBgVideo, isMuted]);
 
   const handleVideoError = () => {
-    console.warn("Hero background video failed to load. Falling back to robust Mixkit vector loop.");
-    // Switch to highly reliable alternative if current is not already that
-    const fallbackUrl = "https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-futuristic-lines-background-42998-large.mp4";
+    console.warn("Hero background video failed to load. Falling back to robust public Cloudinary ambient vector loop.");
+    // Switch to highly reliable public Cloudinary demo loop if current is not already that
+    const fallbackUrl = "https://res.cloudinary.com/demo/video/upload/q_auto,vc_h264/docs/ambient_video.mp4";
     if (currentBgVideo !== fallbackUrl) {
       setCurrentBgVideo(fallbackUrl);
     }
@@ -277,21 +277,23 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
         <video
           ref={bgVideoRef}
           key={currentBgVideo}
+          src={currentBgVideo}
           autoPlay
           loop
           muted // Statically declare muted for guaranteed cross-browser and mobile Safari autoplay
           playsInline
           onError={handleVideoError}
           className="absolute inset-0 w-full h-full object-cover z-0 opacity-60 pointer-events-none"
-        >
-          <source src={currentBgVideo} type="video/mp4" />
-        </video>
+        />
       )}
 
       {/* ─── GRAND HERO HEADER BACKDROP TEXT WITH SCROLL PARALLAX ─── */}
       <div 
         className="absolute inset-x-0 top-[20%] md:top-[12%] flex flex-col items-center justify-center select-none pointer-events-none z-1 overflow-hidden"
-        style={{ transform: `translateY(${scrollY * 0.45}px)` }}
+        style={{ 
+          transform: `translateY(${scrollY * 0.45}px)`,
+          opacity: Math.max(0, 0.90 - scrollY * 0.003)
+        }}
       >
         <motion.div
           initial={{ opacity: 0, scale: 0.96 }}
@@ -305,10 +307,12 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
           <div 
             style={{ 
               fontSize: '14vw',
-              color: primaryColorHex,
               lineHeight: '0.9',
               fontWeight: 800,
-              textShadow: `0 0 50px ${getAccentRgba(accentColor, 0.4)}`
+              background: `linear-gradient(to bottom, ${primaryColorHex} 10%, #050816 95%)`,
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: `drop-shadow(0 0 35px ${getAccentRgba(accentColor, 0.35)})`
             }}
           >
             Airban
@@ -316,11 +320,13 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
           <div 
             style={{ 
               fontSize: '10vw',
-              color: '#F0F4FF',
               lineHeight: '0.85',
               marginTop: '-1.5vw',
               fontWeight: 800,
-              textShadow: '0 0 40px rgba(240, 244, 255, 0.25)'
+              background: 'linear-gradient(to bottom, #FFFFFF 20%, #64748B 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              filter: 'drop-shadow(0 0 25px rgba(255, 255, 255, 0.2))'
             }}
           >
             Ikonicity
@@ -428,17 +434,37 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
               // IDENTITY
             </span>
             <h1 
-              className="text-[#F0F4FF] font-black tracking-tight leading-none uppercase"
+              className="font-black tracking-tight leading-[0.95] uppercase flex flex-col pt-1"
               style={{ 
                 fontSize: 'clamp(1.8rem, 3vw, 2.8rem)',
                 fontFamily: "'Syne', sans-serif"
               }}
             >
-              Airban<br />Ikonicity
+              <span
+                style={{
+                  background: `linear-gradient(135deg, ${primaryColorHex} 25%, #050816 100%)`,
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                Airban
+              </span>
+              <span
+                style={{
+                  background: 'linear-gradient(135deg, #FFFFFF 10%, #8A9BC4 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                }}
+              >
+                Ikonicity
+              </span>
             </h1>
             <p 
-              className={`font-accent font-bold leading-normal ${textAccentClass}`}
-              style={{ fontSize: 'clamp(1rem, 1.8vw, 1.4rem)' }}
+              className={`font-accent font-black leading-normal ${textAccentClass}`}
+              style={{ 
+                fontSize: 'clamp(1rem, 1.8vw, 1.4rem)',
+                WebkitTextStroke: '1px #000000',
+              }}
             >
               Full-Stack Engineer
             </p>
@@ -677,8 +703,11 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
           className="relative w-full space-y-4 px-2 !mt-0 !pt-0 flex flex-col items-center z-20"
         >
           <p 
-            className="font-accent font-extrabold text-[16.5px] uppercase tracking-widest -mt-10 pt-0"
-            style={{ color: getSolidAccentColor(accentColor) }}
+            className="font-accent font-black text-[16.5px] uppercase tracking-widest -mt-10 pt-0"
+            style={{ 
+              color: getSolidAccentColor(accentColor),
+              WebkitTextStroke: '1px #000000',
+            }}
           >
             Full-Stack Engineer
           </p>

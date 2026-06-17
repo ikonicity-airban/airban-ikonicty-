@@ -100,7 +100,7 @@ export default function App() {
     const saved = localStorage.getItem("codeoven_hero_bg_video_url");
     return saved
       ? normalizeVideoUrl(saved)
-      : "https://res.cloudinary.com/ikonicity-airban/video/upload/090b0b2e549c157f607c0cec73221888.mp4";
+      : "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709867/vecteezy_neon-city-ai-generated-ai-generative_31698896_w8zwsf_1_bdio5w.mp4";
   });
 
   const [showConfig, setShowConfig] = useState(false);
@@ -435,7 +435,7 @@ export default function App() {
   const handleClearBgVideo = () => {
     localStorage.removeItem("codeoven_hero_bg_video_url");
     setHeroBgVideoUrl(
-      "https://res.cloudinary.com/ikonicity-airban/video/upload/090b0b2e549c157f607c0cec73221888.mp4",
+      "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709867/vecteezy_neon-city-ai-generated-ai-generative_31698896_w8zwsf_1_bdio5w.mp4",
     );
     setInputBgUrl("");
   };
@@ -459,7 +459,7 @@ export default function App() {
         "code",
       );
       selectPresetBgVideo(
-        "https://res.cloudinary.com/ikonicity-airban/video/upload/090b0b2e549c157f607c0cec73221888.mp4",
+        "https://res.cloudinary.com/demo/video/upload/q_auto,vc_h264/docs/ambient_video.mp4",
       );
     } else if (profileId === "electric-subway") {
       name = "ELECTRIC SUBWAY";
@@ -469,7 +469,7 @@ export default function App() {
         "neon",
       );
       selectPresetBgVideo(
-        "https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-futuristic-lines-background-42998-large.mp4",
+        "https://res.cloudinary.com/demo/video/upload/q_auto,vc_h264/docs/ambient_video.mp4",
       );
     } else if (profileId === "cyber-hologram") {
       name = "CYBER COCKPIT HYBRID";
@@ -479,14 +479,14 @@ export default function App() {
         "code",
       );
       selectPresetBgVideo(
-        "https://res.cloudinary.com/ikonicity-airban/video/upload/090b0b2e549c157f607c0cec73221888.mp4",
+        "https://res.cloudinary.com/demo/video/upload/q_auto,vc_h264/docs/ambient_video.mp4",
       );
     } else if (profileId === "quantum-stealth") {
       name = "QUANTUM STEALTH";
       setAccentColor("green");
       handleClearVideo();
       selectPresetBgVideo(
-        "https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-futuristic-lines-background-42998-large.mp4",
+        "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709863/vecteezy_abstract-cyberpunk-animated-background_4846470_do0h7u_p8etxb.mp4",
       );
     }
     setThemeSwitchingName(name);
@@ -1417,28 +1417,63 @@ export default function App() {
                   <span className="block text-[8px] tracking-widest text-[#8A9BC4] uppercase font-bold">
                     Hero Environment Loop
                   </span>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     <button
                       onClick={() =>
                         selectPresetBgVideo(
-                          "https://res.cloudinary.com/ikonicity-airban/video/upload/090b0b2e549c157f607c0cec73221888.mp4",
+                          "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709867/vecteezy_neon-city-ai-generated-ai-generative_31698896_w8zwsf_1_bdio5w.mp4",
                         )
                       }
-                      className={`py-2 px-2.5 rounded-lg border text-center text-[10px] font-bold transition-all cursor-pointer ${heroBgVideoUrl === "https://res.cloudinary.com/ikonicity-airban/video/upload/090b0b2e549c157f607c0cec73221888.mp4" ? "border-[#39FF14] bg-[#39FF14]/5 text-white" : "border-white/5 hover:border-white/10 text-[#8A9BC4]"}`}
+                      title="Optimized Neon City HD loop"
+                      className={`py-2 px-1 rounded-lg border text-center text-[9px] font-bold transition-all cursor-pointer ${heroBgVideoUrl === "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709867/vecteezy_neon-city-ai-generated-ai-generative_31698896_w8zwsf_1_bdio5w.mp4" ? "border-[#39FF14] bg-[#39FF14]/5 text-white" : "border-white/5 hover:border-white/10 text-[#8A9BC4]"}`}
                     >
-                      Cloudinary Neon
+                      Neon City
                     </button>
                     <button
                       onClick={() =>
                         selectPresetBgVideo(
-                          "https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-futuristic-lines-background-42998-large.mp4",
+                          "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709863/vecteezy_abstract-cyberpunk-animated-background_4846470_do0h7u_p8etxb.mp4",
                         )
                       }
-                      className={`py-2 px-2.5 rounded-lg border text-center text-[10px] font-bold transition-all cursor-pointer ${heroBgVideoUrl === "https://assets.mixkit.co/videos/preview/mixkit-abstract-glowing-futuristic-lines-background-42998-large.mp4" ? "border-[#39FF14] bg-[#39FF14]/5 text-white" : "border-white/5 hover:border-white/10 text-[#8A9BC4]"}`}
+                      title="Optimized Cyberpunk Animated loop"
+                      className={`py-2 px-1 rounded-lg border text-center text-[9px] font-bold transition-all cursor-pointer ${heroBgVideoUrl === "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709863/vecteezy_abstract-cyberpunk-animated-background_4846470_do0h7u_p8etxb.mp4" ? "border-[#39FF14] bg-[#39FF14]/5 text-white" : "border-white/5 hover:border-white/10 text-[#8A9BC4]"}`}
                     >
-                      Futuristic Vectors
+                      Cyber Loop
+                    </button>
+                    <button
+                      onClick={() =>
+                        selectPresetBgVideo(
+                          "https://res.cloudinary.com/demo/video/upload/q_auto,vc_h264/docs/ambient_video.mp4",
+                        )
+                      }
+                      title="Neon Waves Loop (Lightweight CDN)"
+                      className={`py-2 px-1 rounded-lg border text-center text-[9px] font-bold transition-all cursor-pointer ${heroBgVideoUrl === "https://res.cloudinary.com/demo/video/upload/q_auto,vc_h264/docs/ambient_video.mp4" ? "border-[#39FF14] bg-[#39FF14]/5 text-white" : "border-white/5 hover:border-white/10 text-[#8A9BC4]"}`}
+                    >
+                      Neon Waves
                     </button>
                   </div>
+
+                  {/* Custom Backdrop Input form */}
+                  <form onSubmit={handleSaveBgVideoUrl} className="space-y-1.5 pt-1.5 border-t border-white/5">
+                    <label className="block text-[7.5px] tracking-wider text-[#8A9BC4]/70 uppercase font-black">
+                      // CUSTOM DIRECT MP4 URL
+                    </label>
+                    <div className="flex gap-1">
+                      <input
+                        type="text"
+                        placeholder="Paste direct MP4 or Cloudinary asset link..."
+                        value={inputBgUrl}
+                        onChange={(e) => setInputBgUrl(e.target.value)}
+                        className="flex-1 bg-[#050816] border border-white/10 rounded px-2 py-1 text-[9px] font-mono text-white outline-none focus:border-[#39FF14]/40"
+                      />
+                      <button
+                        type="submit"
+                        className="px-2.5 bg-[#39FF14] hover:bg-[#32e012] text-[#050816] rounded font-bold text-[9px] uppercase tracking-wider transition-all duration-150 cursor-pointer"
+                      >
+                        Set
+                      </button>
+                    </div>
+                  </form>
 
                   <button
                     onClick={handleClearBgVideo}

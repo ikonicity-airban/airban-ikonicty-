@@ -165,7 +165,7 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
       id="contact" 
       className="py-24 border-t border-white/5 relative z-20 overflow-hidden bg-[#030611]"
       style={{
-        backgroundImage: 'radial-gradient(rgba(57, 255, 20, 0.015) 1px, transparent 0)',
+        backgroundImage: `radial-gradient(${getAccentRgba(accentColor, 0.015)} 1px, transparent 0)`,
         backgroundSize: '24px 24px'
       }}
     >

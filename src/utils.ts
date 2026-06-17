@@ -203,9 +203,15 @@ export const normalizeVideoUrl = (url: string): string => {
   if (match) {
     const cloudName = match[1];
     const publicId = match[2];
-    return `https://res.cloudinary.com/${cloudName}/video/upload/${publicId}.mp4`;
+    // Include Cloudinary auto format and auto quality layers to prevent browser/device crash from heavy unoptimized files
+    return `https://res.cloudinary.com/${cloudName}/video/upload/f_auto,q_auto/${publicId}.mp4`;
   }
   
+  // Also auto-inject f_auto,q_auto into raw res.cloudinary.com URLs if not already present
+  if (trimmed.includes('res.cloudinary.com/') && trimmed.includes('/video/upload/') && !trimmed.includes('/f_auto,q_auto/')) {
+    return trimmed.replace('/video/upload/', '/video/upload/f_auto,q_auto/');
+  }
+
   return trimmed;
 };
 
