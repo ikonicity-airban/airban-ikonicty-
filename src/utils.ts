@@ -124,44 +124,44 @@ endobj
 << /Length 1200 >>
 stream
 BT
-/F1 18 Tf
-50 780 Td
-(EBAN GODWIN IKONI - FULL-STACK ENGINEER) Tj
-/F1 11 Tf
-0 -30 Td
-(Email: ikonicityairban@gmail.com | Phone: 08169862852 | Address: Nsukka Enugu State) Tj
-0 -15 Td
-(GitHub: https://github.com/ikonicity-airban) Tj
-0 -30 Td
-(SUMMARY) Tj
-0 -15 Td
-(Full-Stack Software Engineer with a solid background in Electronics & Computer Engineering.) Tj
-0 -15 Td
-(A proven builder specialized in scalable systems, AI workflow automation, and mobile platforms.) Tj
-0 -30 Td
-(CORE SKILLS) Tj
-0 -15 Td
-(Languages: TypeScript, JavaScript, Python, Rust, Solidity, C, C#) Tj
-0 -15 Td
-(Frontend: React, Next.js, React Native (Expo), Tailwind CSS, Framer Motion) Tj
-0 -15 Td
-(Backend & Database: Node.js, Express, Hono, FastAPI, PostgreSQL, SQLite, Redis) Tj
-0 -15 Td
-(Cloud & DevOps: Docker, Nginx, CI/CD, AWS, DigitalOcean) Tj
-0 -15 Td
-(AI & Web3: AI Agent workflows, LLM integration, WhatsApp automation, Solidity smart contracts) Tj
-0 -30 Td
+/F1 14 Tf
+50 800 Td
+(EBAN GODWIN IKONI - SOFTWARE ENGINEER) Tj
+/F1 9 Tf
+0 -20 Td
+(Email: ikonicityairban@gmail.com | Phone: +234 816 986 2852 | Remote) Tj
+0 -12 Td
+(GitHub: github.com/airban-ikonicity | Web: airban-ikonicity.vercel.app) Tj
+0 -20 Td
 (PROFESSIONAL EXPERIENCE) Tj
-0 -15 Td
-(Founder & Lead Engineer - CodeOven Technologies Inc. & Geek Creations) Tj
-0 -15 Td
-(Lead Developer & Software Engineer - SOFE Group (2023 - 2024)) Tj
-0 -15 Td
-(Software Consultant - PWorld Concepts (iCatholic Igbo Mobile Application, serving 70,000+ users)) Tj
-0 -30 Td
-(EDUCATION) Tj
-0 -15 Td
-(B.Eng. in Electronics & Computer Engineering - University of Nigeria, Nsukka (2018 - 2023)) Tj
+0 -12 Td
+(- Freelance SE - The Seventh Legion (2025 - Present): Built Oyadrop & EB Pathway) Tj
+0 -12 Td
+(- Freelance Consultant - PWorld Concepts: iCatholic Igbo App (70,000+ users)) Tj
+0 -12 Td
+(- Lead SE - SOFE Group (2023 - Present): Managed platform, automation & bots) Tj
+0 -12 Td
+(- Frontend Engineer - Blaitware (2023): Core frontend on RabbAi tutoring system) Tj
+0 -12 Td
+(- Frontend Engineer - Automated Cafe (2022): Developed Heartzibah shop frontend) Tj
+0 -12 Td
+(- Analyst & Operator - Wisdom Internet Services (2019 - 2022): IT systems administrator) Tj
+0 -20 Td
+(CORE SKILLS) Tj
+0 -12 Td
+(TypeScript, JavaScript, Python, Rust, React, Next.js, React Native, Node.js, Docker, Web3) Tj
+0 -20 Td
+(SELECTED PROJECTS) Tj
+0 -12 Td
+(- Geek Creations: Nigerian Print-on-Demand custom merch platform with editor) Tj
+0 -12 Td
+(- Biddo: Real-time property auction & live buyer-seller platform) Tj
+0 -12 Td
+(- ESTC: Tourism discovery and booking channel for Enugu State) Tj
+0 -12 Td
+(- WAPlug: WhatsApp automation SaaS with chatbot, auto-reply & broadcast) Tj
+0 -12 Td
+(- iNextAI: Emotion-aware AI crypto trader on Internet Computer) Tj
 ET
 endstream
 endobj
@@ -183,7 +183,13 @@ startxref
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = 'Eban_Godwin_Ikoni_Resume.pdf';
+  
+  const now = new Date();
+  const pad = (num: number) => String(num).padStart(2, '0');
+  const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_` +
+                    `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+                    
+  link.download = `Eban_Godwin_Ikoni_Resume_${timestamp}.pdf`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

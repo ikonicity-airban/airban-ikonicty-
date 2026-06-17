@@ -136,6 +136,8 @@ export default function AdminSection({ accentColor, onClose }: AdminSectionProps
       } else {
         setIsAdminLoggedIn(false);
       }
+    }, (error) => {
+      console.warn('[Firebase-SafeNet] Admin Auth observer absorbed connection restriction or network offline state:', error);
     });
     return () => unsub();
   }, []);
@@ -152,6 +154,8 @@ export default function AdminSection({ accentColor, onClose }: AdminSectionProps
         projs.push({ id: doc.id, ...doc.data() });
       });
       setProjects(projs);
+    }, (error) => {
+      console.warn('[Firebase-SafeNet] Admin projects stream offline warning:', error);
     });
 
     // Listen to Testimonials
@@ -162,6 +166,8 @@ export default function AdminSection({ accentColor, onClose }: AdminSectionProps
         tests.push({ id: doc.id, ...doc.data() });
       });
       setTestimonials(tests);
+    }, (error) => {
+      console.warn('[Firebase-SafeNet] Admin testimonials stream offline warning:', error);
     });
 
     // Listen to Messages
@@ -172,6 +178,8 @@ export default function AdminSection({ accentColor, onClose }: AdminSectionProps
         msgs.push({ id: doc.id, ...doc.data() });
       });
       setMessages(msgs);
+    }, (error) => {
+      console.warn('[Firebase-SafeNet] Admin messages stream offline warning:', error);
     });
 
     // Listen to Page views Analytics
@@ -182,6 +190,8 @@ export default function AdminSection({ accentColor, onClose }: AdminSectionProps
         views.push({ id: doc.id, ...doc.data() });
       });
       setAnalytics(views);
+    }, (error) => {
+      console.warn('[Firebase-SafeNet] Admin analytics stream offline warning:', error);
     });
 
     // Listen to Availability docs
@@ -194,6 +204,8 @@ export default function AdminSection({ accentColor, onClose }: AdminSectionProps
           message: data.message
         });
       }
+    }, (error) => {
+      console.warn('[Firebase-SafeNet] Admin availability stream offline warning:', error);
     });
 
     return () => {

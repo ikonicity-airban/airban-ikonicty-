@@ -327,70 +327,74 @@ export default function App() {
 
   // Real-time Database Synchronization Setup
   useEffect(() => {
-    // Seed initial records if empty, then listen for state updates
+    // 1. Instantly subscribe to real-time collections so offline/cached data loads immediately without blocker
+    const projectsQuery = query(
+      collection(db, "projects"),
+      orderBy("order", "asc"),
+    );
+    const unsubProjects = onSnapshot(
+      projectsQuery,
+      (snapshot) => {
+        const fetched: any[] = [];
+        snapshot.forEach((docSnap) => {
+          fetched.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        setDbProjects(fetched);
+      },
+      (err) => {
+        console.warn("Realtime projects subscription failed (operating offline?):", err);
+      },
+    );
+
+    const testimonialsQuery = query(
+      collection(db, "testimonials"),
+      orderBy("order", "asc"),
+    );
+    const unsubTestimonials = onSnapshot(
+      testimonialsQuery,
+      (snapshot) => {
+        const fetched: any[] = [];
+        snapshot.forEach((docSnap) => {
+          fetched.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        setDbTestimonials(fetched);
+      },
+      (err) => {
+        console.warn("Realtime testimonials subscription failed (operating offline?):", err);
+      },
+    );
+
+    const unsubAvailability = onSnapshot(
+      doc(db, "availability", "global"),
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setAvailability({
+            status: data.status || "available",
+            message: data.message || "Available for work",
+          });
+        }
+      },
+      (err) => {
+        console.warn("Realtime availability subscription failed (operating offline?):", err);
+      },
+    );
+
+    // 2. Perform database seeding as a non-blocking background check
     seedDatabaseIfEmpty()
       .then(() => {
-        const projectsQuery = query(
-          collection(db, "projects"),
-          orderBy("order", "asc"),
-        );
-        const unsubProjects = onSnapshot(
-          projectsQuery,
-          (snapshot) => {
-            const fetched: any[] = [];
-            snapshot.forEach((docSnap) => {
-              fetched.push({ id: docSnap.id, ...docSnap.data() });
-            });
-            setDbProjects(fetched);
-          },
-          (err) => {
-            console.error("Realtime projects subscription failed:", err);
-          },
-        );
-
-        const testimonialsQuery = query(
-          collection(db, "testimonials"),
-          orderBy("order", "asc"),
-        );
-        const unsubTestimonials = onSnapshot(
-          testimonialsQuery,
-          (snapshot) => {
-            const fetched: any[] = [];
-            snapshot.forEach((docSnap) => {
-              fetched.push({ id: docSnap.id, ...docSnap.data() });
-            });
-            setDbTestimonials(fetched);
-          },
-          (err) => {
-            console.error("Realtime testimonials subscription failed:", err);
-          },
-        );
-
-        const unsubAvailability = onSnapshot(
-          doc(db, "availability", "global"),
-          (docSnap) => {
-            if (docSnap.exists()) {
-              const data = docSnap.data();
-              setAvailability({
-                status: data.status || "available",
-                message: data.message || "Available for work",
-              });
-            }
-          },
-          (err) => {
-            console.error("Realtime availability subscription failed:", err);
-          },
-        );
-
-        return () => {
-          unsubProjects();
-          unsubTestimonials();
-          unsubAvailability();
-        };
+        // Seeding completed silently or updated active docs
       })
       .catch((err) => {
-        console.error("Initial database seeding / initialization failed:", err);
+        console.warn("Initial database seeding / connection check failed (expected if offline/blocked):", err);
       });
+
+    // 3. SECURE CLEANUP: Synchronously return the unsub functions to prevent memory/quota leaks
+    return () => {
+      unsubProjects();
+      unsubTestimonials();
+      unsubAvailability();
+    };
   }, []);
 
   // Ping jitter sim

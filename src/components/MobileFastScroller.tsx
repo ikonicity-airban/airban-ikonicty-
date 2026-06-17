@@ -281,6 +281,8 @@ export default function MobileFastScroller({ accentColor, onSettingsClick }: Mob
               <Icon 
                 className={iconClass}
                 style={iconStyle}
+                strokeWidth={active ? 1.5 : 2}
+                fill={active ? "currentColor" : "none"}
               />
 
               {/* Dynamic scroll indicator outline */}

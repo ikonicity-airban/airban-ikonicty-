@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, 
@@ -28,6 +28,7 @@ interface CVModalProps {
 }
 
 export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) {
+  const [isDownloading, setIsDownloading] = useState(false);
   
   // Disable background scrolling when modal is open
   useEffect(() => {
@@ -46,6 +47,18 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
   const isGreen = accentColor === 'green';
   const textAccent = getAccentTextClass(accentColor);
   const bgAccent = getAccentBgClass(accentColor);
+
+  const getAccentHexColor = (color: typeof accentColor) => {
+    switch (color) {
+      case 'green': return '#16a34a';
+      case 'cyan': return '#0891b2';
+      case 'pink': return '#db2777';
+      case 'purple': return '#9333ea';
+      case 'yellow': return '#ca8a04';
+      default: return '#16a34a';
+    }
+  };
+  const accentColorHex = getAccentHexColor(accentColor);
 
   const getBorderAccent = (color: typeof accentColor) => {
     switch (color) {
@@ -120,6 +133,162 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
   };
   const hColorRight = getComplementaryAccent(accentColor);
 
+  const handleDownloadPDF = async () => {
+    if (isDownloading) return;
+    setIsDownloading(true);
+    playClickSound('success');
+    
+    // Hold original styles reference for restoration in finally block
+    const stylesheets = Array.from(document.querySelectorAll('style'));
+    const originalContents = stylesheets.map(style => style.textContent || '');
+    
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const { jsPDF } = await import('jspdf');
+
+      // Temporarily transform all oklch() color functions in document stylesheets to standard rgb()/rgba() colors.
+      // This prevents html2canvas's CSS parser from throwing "unsupported color function oklch" errors!
+      const oklchRegex = /oklch\(\s*([0-9.]+%?)\s+([0-9.]+)\s+([0-9.a-zA-Z%]+)(?:\s*\/\s*([0-9.]+%?))?\s*\)/gi;
+
+      stylesheets.forEach(style => {
+        if (style.textContent && style.textContent.toLowerCase().includes('oklch')) {
+          style.textContent = style.textContent.replace(oklchRegex, (match, l, c, h, a) => {
+            try {
+              let L = parseFloat(l);
+              if (l.includes('%')) L /= 100;
+
+              let alpha = 1;
+              if (a) {
+                let aVal = parseFloat(a);
+                if (a.includes('%')) aVal /= 100;
+                alpha = aVal;
+              }
+
+              const C = parseFloat(c);
+              const H = parseFloat(h);
+
+              let r = 0, g = 0, b = 0;
+
+              if (C < 0.04) {
+                // Gray/slate colors
+                if (L >= 0.95) { r = 248; g = 250; b = 252; }
+                else if (L >= 0.90) { r = 241; g = 245; b = 249; }
+                else if (L >= 0.82) { r = 226; g = 232; b = 240; }
+                else if (L >= 0.72) { r = 203; g = 213; b = 225; }
+                else if (L >= 0.60) { r = 148; g = 163; b = 184; }
+                else if (L >= 0.50) { r = 100; g = 116; b = 139; }
+                else if (L >= 0.42) { r = 71; g = 85; b = 105; }
+                else if (L >= 0.34) { r = 51; g = 65; b = 85; }
+                else if (L >= 0.25) { r = 30; g = 41; b = 59; }
+                else if (L >= 0.15) { r = 15; g = 23; b = 42; }
+                else { r = 2; g = 6; b = 23; }
+              } else {
+                // Approximate colored hues (green, cyan, blue, purple, etc.)
+                if (H >= 120 && H < 170) {
+                  r = 57 * L * 2; g = 255 * L; b = 20 * L * 2;
+                } else if (H >= 170 && H < 220) {
+                  r = 0; g = 212 * L; b = 255 * L;
+                } else if (H >= 220 && H < 280) {
+                  r = 59 * L * 2; g = 130 * L; b = 246 * L;
+                } else if (H >= 280 && H < 340) {
+                  r = 168 * L * 2; g = 85 * L; b = 247 * L;
+                } else {
+                  r = 239 * L * 2; g = 110 * L; b = 15 * L * 2;
+                }
+              }
+
+              r = Math.max(0, Math.min(255, Math.round(r)));
+              g = Math.max(0, Math.min(255, Math.round(g)));
+              b = Math.max(0, Math.min(255, Math.round(b)));
+
+              return a ? `rgba(${r}, ${g}, ${b}, ${alpha})` : `rgb(${r}, ${g}, ${b})`;
+            } catch (e) {
+              return 'rgb(0, 0, 0)';
+            }
+          });
+        }
+      });
+
+      const container = document.getElementById('printable-cv-page-container');
+      if (!container) {
+        throw new Error('CV printable container not found');
+      }
+
+      const pages = container.querySelectorAll('.print-page');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Temporarily override styles for clean and professional print capture
+      const cachedStyles: { border: string; boxShadow: string; borderRadius: string; padding: string }[] = [];
+      pages.forEach((pageEl) => {
+        const el = pageEl as HTMLElement;
+        cachedStyles.push({
+          border: el.style.border,
+          boxShadow: el.style.boxShadow,
+          borderRadius: el.style.borderRadius,
+          padding: el.style.padding
+        });
+        el.style.border = 'none';
+        el.style.boxShadow = 'none';
+        el.style.borderRadius = '0';
+        el.style.padding = '1.8cm 1.5cm';
+      });
+
+      for (let i = 0; i < pages.length; i++) {
+        const pageEl = pages[i] as HTMLElement;
+        const canvas = await html2canvas(pageEl, {
+          scale: 2.2, // Retina-level sharp text rendering
+          useCORS: true,
+          allowTaint: false,
+          backgroundColor: '#ffffff',
+          logging: false
+        });
+
+        const imgData = canvas.toDataURL('image/jpeg', 0.98);
+
+        if (i > 0) {
+          pdf.addPage();
+        }
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+      }
+
+      // Restore original layout screen preview styles
+      pages.forEach((pageEl, idx) => {
+        const el = pageEl as HTMLElement;
+        const cached = cachedStyles[idx];
+        if (cached) {
+          el.style.border = cached.border;
+          el.style.boxShadow = cached.boxShadow;
+          el.style.borderRadius = cached.borderRadius;
+          el.style.padding = cached.padding;
+        }
+      });
+
+      // Construct a high-precision filename with current local timezone timestamp to keep downloads distinct
+      const now = new Date();
+      const pad = (num: number) => String(num).padStart(2, '0');
+      const timestamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_` +
+                        `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+      pdf.save(`Eban_Godwin_Ikoni_Resume_${timestamp}.pdf`);
+    } catch (err) {
+      console.error('High fidelity PDF compilation encountered an issue. Falling back to synthetic export:', err);
+      handleDownloadCV(); // fallback to standard fast synthetic downloader
+    } finally {
+      // ALWAYS restore original stylesheets to prevent affecting main portfolio rendering
+      stylesheets.forEach((style, idx) => {
+        if (originalContents[idx] !== undefined) {
+          style.textContent = originalContents[idx];
+        }
+      });
+      setIsDownloading(false);
+    }
+  };
+
   const handlePrint = () => {
     playClickSound('success');
     window.print();
@@ -161,57 +330,34 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
                 max-width: 100% !important;
                 height: auto !important;
                 margin: 0 !important;
-                padding: 2.5cm 2cm !important;
+                padding: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
                 border-radius: 0 !important;
                 background: white !important;
-                color: #111827 !important;
                 overflow: visible !important;
               }
-              /* Force columns ratio in print */
-              .print-columns-wrapper {
-                display: flex !important;
-                flex-direction: row !important;
-                gap: 2.5rem !important;
-                width: 100% !important;
+              .print-page {
+                display: block !important;
+                width: 210mm !important;
+                height: 297mm !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                box-sizing: border-box !important;
+                padding: 1.8cm 1.5cm !important;
+                background: white !important;
+                color: #111827 !important;
+                position: relative !important;
+                overflow: hidden !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
               }
-              .print-col-30 {
-                flex: 0 0 30% !important;
-                max-width: 30% !important;
-                width: 30% !important;
-              }
-              .print-col-70 {
-                flex: 0 0 70% !important;
-                max-width: 70% !important;
-                width: 70% !important;
-              }
-              /* Header color custom print attributes */
-              .print-header-bg {
-                background-color: #0f172a !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color: white !important;
-              }
-              .print-section-header {
-                color: ${getPrintHeaderColor(accentColor)} !important;
-                border-bottom: 2px solid ${getPrintBorderColor(accentColor)} !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-              }
-              .print-bullet-point {
-                color: ${getPrintHeaderColor(accentColor)} !important;
+              .print-page:last-child {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
               }
               .no-print {
                 display: none !important;
-              }
-              /* Technical tag print styling */
-              .print-badge {
-                border: 1px solid #cbd5e1 !important;
-                background-color: #f1f5f9 !important;
-                color: #334155 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
               }
               @page {
                 size: A4 portrait;
@@ -247,16 +393,23 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
                 <span className="hidden sm:inline">PRINT / SAVE PDF</span>
               </button>
 
-              {/* Download raw fallback PDF */}
+              {/* Download high-fidelity PDF with timestamp */}
               <button
-                onClick={() => {
-                  playClickSound('success');
-                  handleDownloadCV();
-                }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#08152e] hover:bg-slate-900 text-white rounded border border-white/10 hover:border-white/20 transition-all cursor-pointer text-[10px]"
+                onClick={handleDownloadPDF}
+                disabled={isDownloading}
+                className={`flex items-center gap-1.5 px-3 py-1.5 bg-[#08152e] hover:bg-slate-900 text-white rounded border border-white/10 hover:border-white/20 transition-all cursor-pointer text-[10px] ${isDownloading ? 'opacity-70 cursor-wait' : ''}`}
               >
-                <Download className="w-3.5 h-3.5 text-[#00D4FF]" />
-                <span className="hidden sm:inline">COMPAT-PDF</span>
+                {isDownloading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 rounded-full border-2 border-t-transparent border-[#00D4FF] animate-spin shrink-0" />
+                    <span>COMPILING...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-3.5 h-3.5 text-[#00D4FF]" />
+                    <span>DOWNLOAD PDF</span>
+                  </>
+                )}
               </button>
 
               <button 
@@ -269,378 +422,442 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
           </div>
 
           {/* Core scrollable Resume Page */}
-          <div className="flex-1 overflow-y-auto bg-[#03060f]/60 p-4 sm:p-8 md:p-12">
+          <div className="flex-1 overflow-y-auto bg-[#03060f]/60 p-4 sm:p-8 flex flex-col items-center">
             
             <div 
               id="printable-cv-page-container"
-              className="bg-[#080d1e] border border-white/5 rounded-xl shadow-2xl p-5 sm:p-10 text-[#d1d5db] font-sans overflow-hidden max-w-4xl mx-auto"
+              className="flex flex-col gap-8 pb-12 w-full items-center"
             >
               
-              {/* HEADER INFORMATION BLOCK */}
-              <div className="print-header-bg border-b border-slate-800 pb-6 mb-8 bg-[#0b1228]/80 -mx-5 sm:-mx-10 -mt-5 sm:-mt-10 p-5 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              {/* PAGE 1 */}
+              <div className="print-page relative bg-white text-slate-800 shadow-2xl p-8 sm:p-12 w-full max-w-[210mm] min-h-[297mm] flex flex-col justify-between rounded-lg select-text font-sans border border-slate-200">
                 <div>
-                  <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase font-display select-text">
-                    Eban Godwin Ikoni
-                  </h1>
-                  <p className={`text-sm tracking-[0.2em] uppercase font-mono font-bold mt-1.5 ${textAccent}`}>
-                    Full-Stack Software Engineer
-                  </p>
-                  <p className="text-xs text-slate-400 font-medium italic mt-2 max-w-md line-clamp-2 md:line-clamp-none">
-                    "I don't specialize in frameworks. I specialize in problems."
-                  </p>
-                </div>
+                  {/* HEADER AREA */}
+                  <div className="mb-4">
+                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 leading-none">
+                      EBAN GODWIN IKONI
+                    </h1>
+                    <h2 className="text-[11px] sm:text-[12.5px] tracking-[0.25em] font-extrabold uppercase mt-1.5" style={{ color: accentColorHex }}>
+                      SOFTWARE ENGINEER | PROBLEM SOLVER
+                    </h2>
+                    
+                    {/* Contacts & Links Stack */}
+                    <div className="text-[10.5px] sm:text-[11.5px] text-slate-600 flex flex-wrap gap-x-3 gap-y-1 mt-3 select-text font-sans border-t border-slate-100 pt-3">
+                      <span>ikonicityairban@gmail.com</span>
+                      <span className="text-slate-300">|</span>
+                      <span>+234 816 986 2852</span>
+                      <span className="text-slate-300">|</span>
+                      <span>Enugu, Nigeria · Remote Worldwide</span>
+                    </div>
+                    <div className="text-[10.5px] sm:text-[11.5px] text-slate-600 flex flex-wrap gap-x-3 gap-y-1 mt-1 font-sans">
+                      <a href="https://github.com/airban-ikonicity" target="_blank" rel="noreferrer" className="hover:underline text-slate-700">github.com/airban-ikonicity</a>
+                      <span className="text-slate-300">|</span>
+                      <a href="https://linkedin.com/in/eban-godwin-ikoni" target="_blank" rel="noreferrer" className="hover:underline text-slate-700">linkedin.com/in/eban-godwin-ikoni</a>
+                      <span className="text-slate-300">|</span>
+                      <a href="https://airban-ikonicity.vercel.app" target="_blank" rel="noreferrer" className="hover:underline text-slate-700">airban-ikonicity.vercel.app</a>
+                    </div>
+                  </div>
 
-                {/* Main contact details formatted nicely */}
-                <div className="flex flex-col gap-2.5 text-xs text-slate-300 font-mono self-stretch md:self-auto justify-center bg-slate-950/40 md:bg-transparent p-3 rounded md:p-0 border border-white/5 md:border-none w-full md:w-auto">
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-3.5 h-3.5 text-[#8A9BC4] shrink-0" />
-                    <a href="mailto:ikonicityairban@gmail.com" className="hover:underline text-white font-semibold">
-                      ikonicityairban@gmail.com
-                    </a>
+                  {/* Horizontal dividing bar */}
+                  <div className="h-[1px] w-full my-4" style={{ backgroundColor: `${accentColorHex}40` }} />
+
+                  {/* Summary paragraph */}
+                  <div className="text-[11.5px] sm:text-[12.5px] leading-relaxed text-slate-700 font-sans mb-6">
+                    Full-Stack Software Engineer with 4+ years of experience designing and shipping production systems across education, fintech, blockchain, e-commerce, and enterprise automation. Background in Electronics and Computer Engineering with a focus on algorithmic problem-solving. Comfortable owning a problem end-to-end — architecture, debugging, deployment — across React/Next.js, Node.js, Python, and cloud infrastructure. Built and maintains a mobile app serving 70,000+ active users, led platform development for a blockchain-focused organization, and currently operates independently through Airban Ikonicity.
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="w-3.5 h-3.5 text-[#8A9BC4] shrink-0" />
-                    <a href="tel:08169862852" className="hover:underline text-white font-semibold">
-                      08169862852
-                    </a>
+
+                  {/* PROFESSIONAL EXPERIENCE */}
+                  <div className="mb-4">
+                    <h3 className="text-[12px] sm:text-[13px] font-extrabold tracking-[0.10em] uppercase text-slate-900">
+                      PROFESSIONAL EXPERIENCE
+                    </h3>
+                    <div className="h-[2px] w-full mt-1" style={{ backgroundColor: accentColorHex }} />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-[#8A9BC4] shrink-0" />
-                    <span className="text-white font-semibold">Nsukka, Enugu State, Nigeria</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Github className="w-3.5 h-3.5 text-[#8A9BC4] shrink-0" />
-                    <a href="https://github.com/ikonicity-airban" target="_blank" rel="noreferrer" className="hover:underline text-white font-semibold">
-                      github.com/ikonicity-airban
-                    </a>
+
+                  <div className="space-y-5">
+                    {/* Job 1 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[12px] sm:text-[13px] font-extrabold text-slate-900 leading-tight">
+                          Freelance Software Engineer <span className="font-light text-slate-300">—</span> <span className="text-slate-500 font-semibold">The Seventh Legion</span>
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-900 shrink-0">2025 — Present</p>
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 font-sans italic mt-0.5 mb-2">Rapid Development Studio · Remote</p>
+                      
+                      <ul className="space-y-1.5 pl-1.5">
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          <span className="font-bold text-slate-900">Built and deployed Oyadrop</span> — a logistics and courier platform for goods shipment across Nigeria, integrating Google Maps for live tracking and Paystack for payments.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          <span className="font-bold text-slate-900">Built and deployed EB Pathway</span> — a full-stack immigration case-management platform with role-based workflows spanning Finance, Research, Support, and Super Admin layers.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Convert generated UI designs and wireframes into fully functional, production-ready platforms.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Most deliverables for this organization are covered under NDA; public work limited to the two projects above.
+                        </li>
+                      </ul>
+                      <p className="text-[10px] sm:text-[11px] text-slate-600 mt-2 font-sans">
+                        <strong className="tracking-wider uppercase font-extrabold text-[9px] mr-1.5" style={{ color: accentColorHex }}>STACK</strong> React · Next.js · TypeScript · Google Maps API · Paystack · DigitalOcean · Docker
+                      </p>
+                    </div>
+
+                    {/* Job 2 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[12px] sm:text-[13px] font-extrabold text-slate-900 leading-tight">
+                          Freelance Software Consultant & Developer <span className="font-light text-slate-300">—</span> <span className="text-slate-500 font-semibold">PWorld Concepts</span>
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-900 shrink-0">2024 — Present</p>
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 font-sans italic mt-0.5 mb-2">Software Consultancy · Nsukka, Nigeria</p>
+                      
+                      <ul className="space-y-1.5 pl-1.5">
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          <span className="font-bold text-slate-900">Core contributor to iCatholic Igbo</span> — a Catholic missal, prayer guide, and media platform now serving 70,000+ users across iOS and Android.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Own feature delivery from the data layer up — data structures, algorithm design, and integration logic.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Performed deep debugging and architectural refactoring on a large, untyped JavaScript codebase — high-precision work where small errors carried high risk.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Ongoing role managing platform stability, bug fixes, and technical guidance.
+                        </li>
+                      </ul>
+                      <p className="text-[10px] sm:text-[11px] text-slate-600 mt-2 font-sans">
+                        <strong className="tracking-wider uppercase font-extrabold text-[9px] mr-1.5" style={{ color: accentColorHex }}>STACK</strong> React Native (Expo) · JavaScript · TypeScript
+                      </p>
+                    </div>
+
+                    {/* Job 3 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[12px] sm:text-[13px] font-extrabold text-slate-900 leading-tight">
+                          Lead Software Developer &rarr; Software Engineer <span className="font-light text-slate-300">—</span> <span className="text-slate-500 font-semibold">SOFE Group</span>
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-900 shrink-0">2023 — Present</p>
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 font-sans italic mt-0.5 mb-2">Blockchain-Focused Youth Empowerment Organization · Hybrid</p>
+                      
+                      <ul className="space-y-1.5 pl-1.5">
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          <span className="font-bold text-slate-900">Served as Dev Lead</span> during the platform's foundational build — owned technical direction, architecture decisions, and delivery.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Designed and built the main public platform at sofegroup.com from zero to a fully operational product.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Built Telegram cryptocurrency airdrop bots handling automated reward distribution.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Engineered WhatsApp automation systems in both Python and TypeScript for internal operations.
+                        </li>
+                      </ul>
+                      <p className="text-[10px] sm:text-[11px] text-slate-600 mt-2 font-sans">
+                        <strong className="tracking-wider uppercase font-extrabold text-[9px] mr-1.5" style={{ color: accentColorHex }}>STACK</strong> Next.js · TypeScript · Python · Telegram Bot API · WhatsApp Automation (Baileys + Meta API)
+                      </p>
+                    </div>
+
+                    {/* Job 4 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[12px] sm:text-[13px] font-extrabold text-slate-900 leading-tight">
+                          Frontend Engineer <span className="font-light text-slate-300">—</span> <span className="text-slate-500 font-semibold">Blaitware</span>
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-900 shrink-0">Early 2023 — Late 2023</p>
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 font-sans italic mt-0.5 mb-2">Software Engineering Firm · Remote Contract</p>
+                      
+                      <ul className="space-y-1.5 pl-1.5">
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          <span className="font-bold text-slate-900">Core frontend engineer on RabbAi</span> — an AI-powered exam preparation platform for WAEC, NECO, and JAMB candidates.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Built the student dashboard, score-tracking interface, and real-time chatbot UI.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Integrated AI features at a time when stable SDKs were largely unavailable, requiring first-principles implementation.
+                        </li>
+                      </ul>
+                      <p className="text-[10px] sm:text-[11px] text-slate-600 mt-2 font-sans">
+                        <strong className="tracking-wider uppercase font-extrabold text-[9px] mr-1.5" style={{ color: accentColorHex }}>STACK</strong> React · Python (FastAPI) · Docker
+                      </p>
+                    </div>
+
+                    {/* Job 5 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[12px] sm:text-[13px] font-extrabold text-slate-900 leading-tight">
+                          Frontend Engineer <span className="font-light text-slate-300">—</span> <span className="text-slate-500 font-semibold">Automated Cafe</span>
+                        </p>
+                        <p className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-900 shrink-0">2022</p>
+                      </div>
+                      <p className="text-[10px] sm:text-[11px] text-slate-400 font-sans italic mt-0.5 mb-2">Technology Company · On-site Contract</p>
+                      
+                      <ul className="space-y-1.5 pl-1.5">
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          <span className="font-bold text-slate-900">Designed and developed the frontend for Heartzibah Shop</span>, a client storefront selling baby wares, household utensils, appliances, and food supplies.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Translated business requirements directly into production UI with no formal design handoff.
+                        </li>
+                        <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                          <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                          Delivered a complete, responsive shopping interface within a short engagement window.
+                        </li>
+                      </ul>
+                      {/* Carryover stack is rendered at top of page 2 in user specs, let's keep it here on screen too but make sure it flows logically */}
+                      <p className="text-[10px] sm:text-[11px] text-slate-600 mt-2 font-sans">
+                        <strong className="tracking-wider uppercase font-extrabold text-[9px] mr-1.5" style={{ color: accentColorHex }}>STACK</strong> React · CSS · JavaScript
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
 
-              {/* TWO COLUMN CONTENT STRUCTURE (Flex Ratio 0.3 Left & 0.7 Right) */}
-              <div className="print-columns-wrapper flex flex-col md:flex-row gap-8 lg:gap-10">
-                
-                {/* ─── COLUMN 1: LEFT MINOR DETAILS (Flex 0.30/30%) ─── */}
-                <div className="print-col-30 flex-1 md:flex-[0_0_31%] space-y-8 select-text">
+              {/* PAGE 2 */}
+              <div className="print-page relative bg-white text-slate-800 shadow-2xl p-8 sm:p-12 w-full max-w-[210mm] min-h-[297mm] flex flex-col justify-between rounded-lg select-text font-sans border border-slate-200">
+                <div>
                   
-                  {/* Contacts Summary Section for Print fallback */}
-                  <div className="space-y-4">
-                    <h3 className="print-section-header font-display font-black text-sm uppercase tracking-wider pb-1.5 border-b border-white/10 text-white flex items-center gap-2">
-                      <Terminal className="w-4 h-4 text-[#8A9BC4]" />
-                      <span>Contact Info</span>
-                    </h3>
-                    <div className="space-y-2 text-xs font-mono">
-                      <div>
-                        <p className="text-slate-400 text-[10px] uppercase font-bold">// Email</p>
-                        <p className="text-white font-medium">ikonicityairban@gmail.com</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 text-[10px] uppercase font-bold">// Phone</p>
-                        <p className="text-white font-medium">+234 816 986 2852</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 text-[10px] uppercase font-bold">// Address</p>
-                        <p className="text-white font-medium">Enugu State, Nigeria</p>
-                      </div>
+                  {/* Carryover Stack header from Job 5 */}
+                  <p className="text-[11px] sm:text-[12px] text-slate-400 font-mono tracking-wider italic mb-4">
+                    STACK React · CSS · JavaScript
+                  </p>
+
+                  {/* Wisdom Internet Services job */}
+                  <div>
+                    <div className="flex justify-between items-baseline gap-2">
+                      <p className="text-[12px] sm:text-[13px] font-extrabold text-slate-900 leading-tight">
+                        Computer Analyst & Operator <span className="font-light text-slate-300">—</span> <span className="text-slate-500 font-semibold">Wisdom Internet Services</span>
+                      </p>
+                      <p className="text-[10px] sm:text-[11px] font-mono font-bold text-slate-900 shrink-0">2019 — 2022</p>
                     </div>
+                    <p className="text-[10px] sm:text-[11px] text-slate-400 font-sans italic mt-0.5 mb-2">Cyber Café · University of Nigeria, Nsukka Campus</p>
+                    
+                    <ul className="space-y-1.5 pl-1.5">
+                      <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                        <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                        Managed computer systems and network infrastructure; diagnosed and resolved hardware, software, and connectivity issues for daily operations.
+                      </li>
+                      <li className="relative pl-4 text-[11px] sm:text-[12px] text-slate-700 leading-relaxed font-sans">
+                        <span className="absolute left-0 top-[6px] w-[5px] h-[5px] rounded-full" style={{ backgroundColor: accentColorHex }} />
+                        Gained advanced proficiency in Microsoft Word, Excel, and PowerPoint, supporting document-heavy academic and administrative work.
+                      </li>
+                    </ul>
                   </div>
 
-                  {/* Core Technical skills */}
-                  <div className="space-y-4">
-                    <h3 className={`print-section-header font-display font-black text-sm uppercase tracking-wider pb-1.5 border-b border-white/10 text-white flex items-center gap-2`}>
-                      <Code2 className="w-4 h-4 text-[#8A9BC4]" />
-                      <span>Core Skills</span>
+                  {/* CORE SKILLS & STACK */}
+                  <div className="mt-6 mb-4">
+                    <h3 className="text-[12px] sm:text-[13px] font-extrabold tracking-[0.10em] uppercase text-slate-900">
+                      CORE SKILLS & STACK
                     </h3>
-                    
+                    <div className="h-[2px] w-full mt-1" style={{ backgroundColor: accentColorHex }} />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-6">
+                    {/* Col 1 */}
                     <div className="space-y-3.5">
                       <div>
-                        <h4 className={`text-[10px] uppercase font-bold tracking-wider mb-1.5 ${hColorLeft}`}>
-                          Languages
+                        <h4 className="text-[10px] font-extrabold tracking-wider uppercase mb-1" style={{ color: accentColorHex }}>
+                          LANGUAGES
                         </h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {["TypeScript", "JavaScript", "Python", "Rust", "Solidity", "C", "C#"].map(s => (
-                            <span key={s} className="print-badge bg-[#0a1124] text-[10px] font-mono text-[#CAD5EE] px-2 py-0.5 rounded border border-white/5 font-semibold">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-[10.5px] sm:text-[11.5px] text-slate-700 leading-relaxed">
+                          TypeScript, JavaScript, Python, Rust, C#, Java, Solidity, C
+                        </p>
                       </div>
-
                       <div>
-                        <h4 className={`text-[10px] uppercase font-bold tracking-wider mb-1.5 ${hColorLeft}`}>
-                          Frontend Engine
+                        <h4 className="text-[10px] font-extrabold tracking-wider uppercase mb-1" style={{ color: accentColorHex }}>
+                          CLOUD & DEVOPS
                         </h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {["React", "Next.js", "React Native", "Tailwind CSS", "Framer Motion", "Three.js"].map(s => (
-                            <span key={s} className="print-badge bg-[#0a1124] text-[10px] font-mono text-[#CAD5EE] px-2 py-0.5 rounded border border-white/5 font-semibold">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-[10.5px] sm:text-[11.5px] text-slate-700 leading-relaxed">
+                          Docker, Firebase, DigitalOcean, AWS, CI/CD, Linux
+                        </p>
                       </div>
+                    </div>
 
+                    {/* Col 2 */}
+                    <div className="space-y-3.5">
                       <div>
-                        <h4 className={`text-[10px] uppercase font-bold tracking-wider mb-1.5 ${hColorLeft}`}>
-                          Backend & DB
+                        <h4 className="text-[10px] font-extrabold tracking-wider uppercase mb-1" style={{ color: accentColorHex }}>
+                          FRONTEND
                         </h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {["Node.js", "Bun", "Express", "Hono", "FastAPI", "PostgreSQL", "SQLite", "Redis"].map(s => (
-                            <span key={s} className="print-badge bg-[#0a1124] text-[10px] font-mono text-[#CAD5EE] px-2 py-0.5 rounded border border-white/5 font-semibold">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-[10.5px] sm:text-[11.5px] text-slate-700 leading-relaxed">
+                          React, Next.js, React Native (Expo), Tailwind CSS
+                        </p>
                       </div>
-
                       <div>
-                        <h4 className={`text-[10px] uppercase font-bold tracking-wider mb-1.5 ${hColorLeft}`}>
-                          AI & Web3 Automation
+                        <h4 className="text-[10px] font-extrabold tracking-wider uppercase mb-1" style={{ color: accentColorHex }}>
+                          BLOCKCHAIN
                         </h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {["AI Agents", "LLM Pipelines", "WhatsApp Automations", "Solidity Core"].map(s => (
-                            <span key={s} className="print-badge bg-[#0a1124] text-[10px] font-mono text-[#CAD5EE] px-2 py-0.5 rounded border border-white/5 font-semibold">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-[10.5px] sm:text-[11.5px] text-slate-700 leading-relaxed">
+                          Solidity, Ethers.js, ICP, Foundry, Smart Contracts
+                        </p>
                       </div>
+                    </div>
 
+                    {/* Col 3 */}
+                    <div className="space-y-3.5">
                       <div>
-                        <h4 className={`text-[10px] uppercase font-bold tracking-wider mb-1.5 ${hColorLeft}`}>
-                          DevOps & Cloud
+                        <h4 className="text-[10px] font-extrabold tracking-wider uppercase mb-1" style={{ color: accentColorHex }}>
+                          BACKEND
                         </h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {["Docker", "Nginx", "CI/CD", "AWS", "DigitalOcean"].map(s => (
-                            <span key={s} className="print-badge bg-[#0a1124] text-[10px] font-mono text-[#CAD5EE] px-2 py-0.5 rounded border border-white/5 font-semibold">
-                              {s}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-[10.5px] sm:text-[11.5px] text-slate-700 leading-relaxed">
+                          Node.js, Bun, Hono, Express, FastAPI, NestJS, .NET
+                        </p>
+                      </div>
+                      <div>
+                        <h4 className="text-[10px] font-extrabold tracking-wider uppercase mb-1" style={{ color: accentColorHex }}>
+                          AI & AUTOMATION
+                        </h4>
+                        <p className="text-[10.5px] sm:text-[11.5px] text-slate-700 leading-relaxed">
+                          AI Agent Integration, LLM Workflows, WhatsApp/Telegram Bots
+                        </p>
                       </div>
                     </div>
                   </div>
 
-                  {/* Certifications Block */}
-                  <div className="space-y-4">
-                    <h3 className="print-section-header font-display font-black text-sm uppercase tracking-wider pb-1.5 border-b border-white/10 text-white flex items-center gap-2">
-                      <Award className="w-4 h-4 text-[#8A9BC4]" />
-                      <span>Certificates</span>
+                  {/* EDUCATION & CERTIFICATIONS */}
+                  <div className="mt-6 mb-4">
+                    <h3 className="text-[12px] sm:text-[13px] font-extrabold tracking-[0.10em] uppercase text-slate-900">
+                      EDUCATION & CERTIFICATIONS
                     </h3>
-                    <div className="space-y-3.5 text-xs">
-                      <div>
-                        <h4 className="font-semibold text-white leading-tight">
-                          Professional Data Architect & AI Specialty
-                        </h4>
-                        <p className="text-[10px] font-mono text-slate-400 mt-0.5">Google / Coursera · 2024</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-white leading-tight">
-                          Advanced Systems & Security Protocols
-                        </h4>
-                        <p className="text-[10px] font-mono text-slate-400 mt-0.5">Google / Coursera · 2023</p>
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-white leading-tight">
-                          Applied Software Engineering Career Path
-                        </h4>
-                        <p className="text-[10px] font-mono text-slate-400 mt-0.5">FreeCodeCamp · 2022</p>
-                      </div>
-                    </div>
+                    <div className="h-[2px] w-full mt-1" style={{ backgroundColor: accentColorHex }} />
                   </div>
 
-                  {/* Educational Degree */}
-                  <div className="space-y-4">
-                    <h3 className="print-section-header font-display font-black text-sm uppercase tracking-wider pb-1.5 border-b border-white/10 text-white flex items-center gap-2">
-                      <GraduationCap className="w-4 h-4 text-[#8A9BC4]" />
-                      <span>Education</span>
-                    </h3>
-                    <div className="space-y-1 text-xs">
-                      <h4 className="font-bold text-white uppercase leading-tight text-[11px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <h4 className="text-[12px] font-bold text-slate-900 leading-tight">
                         B.Eng. Electronics & Computer Engineering
                       </h4>
-                      <p className="text-[#8A9BC4] text-[11px]">University of Nigeria, Nsukka</p>
-                      <p className="text-[10px] font-mono text-slate-400 italic">Class of 2018 – 2023</p>
+                      <p className="text-[11px] text-slate-500 mt-1">University of Nigeria, Nsukka</p>
+                      <p className="text-[10px] font-mono mt-1 font-bold" style={{ color: accentColorHex }}>2018 — 2023 · Software Engineering & Embedded Systems</p>
+                    </div>
+                    <div className="space-y-1 text-[11px] text-slate-700 leading-relaxed">
+                      <p>&bull; IBM Introduction to Software Engineering</p>
+                      <p>&bull; Full-Stack Engineering (TypeScript) &mdash; Codedamn</p>
+                      <p>&bull; Responsive Web Design &mdash; FreeCodeCamp</p>
+                      <p>&bull; JavaScript Algorithms & Data Structures &mdash; FreeCodeCamp</p>
+                      <p>&bull; Rust &mdash; coddy.tech &middot; Multi-language &mdash; Sololearn</p>
                     </div>
                   </div>
 
-                  {/* Languages Block */}
-                  <div className="space-y-4">
-                    <h3 className="print-section-header font-display font-black text-sm uppercase tracking-wider pb-1.5 border-b border-white/10 text-white flex items-center gap-2">
-                      <Languages className="w-4 h-4 text-[#8A9BC4]" />
-                      <span>Languages</span>
+                  {/* SELECTED PROJECTS */}
+                  <div className="mt-6 mb-3">
+                    <h3 className="text-[12px] sm:text-[13px] font-extrabold tracking-[0.10em] uppercase text-slate-900">
+                      SELECTED PROJECTS
                     </h3>
-                    <div className="space-y-1 font-mono text-xs text-white">
-                      <p className="flex justify-between">
-                        <span>English</span>
-                        <span className="text-[#8A9BC4]">Professional</span>
+                    <div className="h-[2px] w-full mt-1" style={{ backgroundColor: accentColorHex }} />
+                  </div>
+
+                  <div className="space-y-3.5">
+                    {/* Project 1 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[11.5px] sm:text-[12.5px] font-extrabold text-slate-900 leading-tight">
+                          Geek Creations <span className="font-light text-slate-300">—</span> <span className="text-slate-600 font-semibold text-[11px]">Founder & Full-Stack Engineer</span>
+                        </p>
+                        <p className="text-[9.5px] font-mono font-bold text-slate-900 shrink-0 uppercase tracking-wider">Ongoing</p>
+                      </div>
+                      <p className="text-[11px] text-slate-700 mt-0.5 leading-relaxed pl-1.5">
+                        &bull; Nigerian Print-on-Demand platform letting users customize and order branded merchandise through a live online editor. Accepts fiat, card, and cryptocurrency payments via gateway, with local and global delivery.
                       </p>
-                      <p className="flex justify-between">
-                        <span>Igbo</span>
-                        <span className="text-[#8A9BC4]">Native Speaker</span>
+                      <p className="text-[9.5px] text-slate-500 mt-0.5 pl-1.5">
+                        <span className="font-extrabold uppercase mr-1 text-[8.5px]" style={{ color: accentColorHex }}>STACK</span> React · Fabric.js · Shopify Storefront API · Crypto Payment Gateway — geekcreations.vercel.app
+                      </p>
+                    </div>
+
+                    {/* Project 2 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[11.5px] sm:text-[12.5px] font-extrabold text-slate-900 leading-tight">
+                          Biddo <span className="font-light text-slate-300">—</span> <span className="text-slate-600 font-semibold text-[11px]">Full-Stack Engineer</span>
+                        </p>
+                        <p className="text-[9.5px] font-mono font-bold text-slate-900 shrink-0 uppercase tracking-wider">Live</p>
+                      </div>
+                      <p className="text-[11px] text-slate-700 mt-0.5 leading-relaxed pl-1.5">
+                        &bull; Real-time property auction platform with live buyer-seller communication, location tracking, and property heatmaps. Currently serving its active user base in production.
+                      </p>
+                      <p className="text-[9.5px] text-slate-500 mt-0.5 pl-1.5">
+                        <span className="font-extrabold uppercase mr-1 text-[8.5px]" style={{ color: accentColorHex }}>STACK</span> Next.js · Express.js · Docker · DigitalOcean — web.biddo.info
+                      </p>
+                    </div>
+
+                    {/* Project 3 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[11.5px] sm:text-[12.5px] font-extrabold text-slate-900 leading-tight">
+                          ESTC &mdash; Enugu State Tourism <span className="font-light text-slate-300">—</span> <span className="text-slate-600 font-semibold text-[11px]">Full-Stack Engineer (Solo)</span>
+                        </p>
+                        <p className="text-[9.5px] font-mono font-bold text-slate-900 shrink-0 uppercase tracking-wider">Live</p>
+                      </div>
+                      <p className="text-[11px] text-slate-700 mt-0.5 leading-relaxed pl-1.5">
+                        &bull; Tourism discovery and booking platform showcasing tour sites, packages, and services across Enugu State, built end-to-end from data modeling to deployment.
+                      </p>
+                      <p className="text-[9.5px] text-slate-500 mt-0.5 pl-1.5">
+                        <span className="font-extrabold uppercase mr-1 text-[8.5px]" style={{ color: accentColorHex }}>STACK</span> React (Vite) · Firebase — vite-tour.netlify.app
+                      </p>
+                    </div>
+
+                    {/* Project 4 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[11.5px] sm:text-[12.5px] font-extrabold text-slate-900 leading-tight">
+                          WAPlug <span className="font-light text-slate-300">—</span> <span className="text-slate-600 font-semibold text-[11px]">Founder & Engineer</span>
+                        </p>
+                        <p className="text-[9.5px] font-mono font-bold text-slate-900 shrink-0 uppercase tracking-wider">Live SaaS</p>
+                      </div>
+                      <p className="text-[11px] text-slate-700 mt-0.5 leading-relaxed pl-1.5">
+                        &bull; WhatsApp automation SaaS providing auto-reply, broadcast, chatbot, and group moderation (spam and language filtering) for real businesses. Built on an unofficial WebSocket-based library alongside the official Meta API.
+                      </p>
+                      <p className="text-[9.5px] text-slate-500 mt-0.5 pl-1.5">
+                        <span className="font-extrabold uppercase mr-1 text-[8.5px]" style={{ color: accentColorHex }}>STACK</span> Node.js · Baileys · Meta WhatsApp Business API — plugins-wa.onrender.com
+                      </p>
+                    </div>
+
+                    {/* Project 5 */}
+                    <div>
+                      <div className="flex justify-between items-baseline gap-2">
+                        <p className="text-[11.5px] sm:text-[12.5px] font-extrabold text-slate-900 leading-tight">
+                          iNextAI <span className="font-light text-slate-300">—</span> <span className="text-slate-600 font-semibold text-[11px]">Feature Contributor</span>
+                        </p>
+                        <p className="text-[9.5px] font-mono font-bold text-slate-900 shrink-0 uppercase tracking-wider">Live</p>
+                      </div>
+                      <p className="text-[11px] text-slate-700 mt-0.5 leading-relaxed pl-1.5">
+                        &bull; Contributed feature-level development to an emotion-aware AI crypto trading platform on the Internet Computer, combining market analysis with trading-psychology tracking.
+                      </p>
+                      <p className="text-[9.5px] text-slate-500 mt-0.5 pl-1.5">
+                        <span className="font-extrabold uppercase mr-1 text-[8.5px]" style={{ color: accentColorHex }}>STACK</span> Internet Computer (ICP) · Internet Identity · Web3
                       </p>
                     </div>
                   </div>
-
                 </div>
 
-
-                {/* ─── COLUMN 2: RIGHT MAJOR DETAILS (Flex 0.70/70%) ─── */}
-                <div className="print-col-70 flex-1 md:flex-[0_0_65%] space-y-8 select-text">
-                  
-                  {/* Executive Professional Summary */}
-                  <div className="space-y-3">
-                    <h3 className={`print-section-header font-display font-black text-sm uppercase tracking-wider pb-1.5 border-b border-white/10 text-white flex items-center gap-2`}>
-                      <Sparkles className="w-4 h-4 text-[#8A9BC4]" />
-                      <span>Executive Summary</span>
-                    </h3>
-                    <p className="text-xs sm:text-[13px] leading-relaxed text-slate-300">
-                      High-impact Full-Stack Software Engineer with a solid background in Electronics & Computer Engineering. Specialized in architecting and shipping complex automated systems, AI workflow optimizations, and high-performance cross-platform mobile engines. Adept at diving beneath surface-level frameworks to resolve architectural bottlenecks, critical memory leaks, and core system optimizations. Shipped production code serving over 70,000+ active users.
-                    </p>
-                  </div>
-
-                  {/* Employment History Narrative */}
-                  <div className="space-y-5">
-                    <h3 className={`print-section-header font-display font-black text-sm uppercase tracking-wider pb-1.5 border-b border-white/10 text-white flex items-center gap-2`}>
-                      <Briefcase className="w-4 h-4 text-[#8A9BC4]" />
-                      <span>Professional Experience</span>
-                    </h3>
-
-                    <div className="space-y-5">
-                      
-                      {/* Job 1 */}
-                      <div>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                          <h4 className={`text-[13.5px] font-black uppercase text-white tracking-wide`}>
-                            Founder & Lead Systems Engineer
-                          </h4>
-                          <span className="font-mono text-[10.5px] text-[#8A9BC4] max-w-max bg-slate-900/60 px-2 py-0.5 rounded border border-white/5">
-                            2024 – PRESENT
-                          </span>
-                        </div>
-                        <h5 className="font-mono text-xs text-[#E2E8F0] mb-2 px-1 border-l-2 border-slate-500 font-bold">
-                          CodeOven Technologies Inc. & Geek Creations
-                        </h5>
-                        <ul className="list-disc pl-4 text-[12px] text-slate-300 space-y-1.5">
-                          <li>
-                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
-                            Designed and engineered a customizable Shopfy Creator API canvas interface allowing users to draft print merchandise orders smoothly.
-                          </li>
-                          <li>
-                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
-                            Coordinated transactional ledger handoff loops integrating bank gateways and decentralized smart contract coin transfers.
-                          </li>
-                          <li>
-                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
-                            Programmed headless backend Docker pipelines bridging WhatsApp chat nodes with local client CRM notification routes, moving over 15,000 requests/day.
-                          </li>
-                        </ul>
-                      </div>
-
-                      {/* Job 2 */}
-                      <div>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                          <h4 className="text-[13.5px] font-black uppercase text-white tracking-wide">
-                            Freelance Software Consultant
-                          </h4>
-                          <span className="font-mono text-[10.5px] text-[#8A9BC4] max-w-max bg-slate-900/60 px-2 py-0.5 rounded border border-white/5">
-                            2024 – PRESENT
-                          </span>
-                        </div>
-                        <h5 className="font-mono text-xs text-[#E2E8F0] mb-2 px-1 border-l-2 border-slate-500 font-bold">
-                          PWorld Concepts (iCatholic Igbo Mobile Application)
-                        </h5>
-                        <ul className="list-disc pl-4 text-[12px] text-slate-300 space-y-1.5">
-                          <li>
-                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
-                            Refactored untyped, legacy React Native codebase to TypeScript, ensuring strict structural type integrity.
-                          </li>
-                          <li>
-                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
-                            Implemented robust SQLite schema migration and state managers, enabling flawless offline capability for 70k+ users.
-                          </li>
-                          <li>
-                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
-                            Optimized cross-platform media audio service handlers to reduce initialization playback latencies by 42%.
-                          </li>
-                        </ul>
-                      </div>
-
-                      {/* Job 3 */}
-                      <div>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1.5">
-                          <h4 className="text-[13.5px] font-black uppercase text-white tracking-wide">
-                            Lead Developer & Software Engineer
-                          </h4>
-                          <span className="font-mono text-[10.5px] text-[#8A9BC4] max-w-max bg-slate-900/60 px-2 py-0.5 rounded border border-white/5">
-                            2023 – 2024
-                          </span>
-                        </div>
-                        <h5 className="font-mono text-xs text-[#E2E8F0] mb-2 px-1 border-l-2 border-slate-500 font-bold">
-                          SOFE Group
-                        </h5>
-                        <ul className="list-disc pl-4 text-[12px] text-slate-300 space-y-1.5">
-                          <li>
-                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
-                            Supervised a developers' squad designing active organizational assets and blockchain-focused portal interfaces.
-                          </li>
-                          <li>
-                            <span className={`print-bullet-point ${textAccent} font-black mr-1`}>•</span>
-                            Configured real-time webhook listener layers and automated multi-sig Telegram bot commands to secure token management.
-                          </li>
-                        </ul>
-                      </div>
-
-                    </div>
-                  </div>
-
-                  {/* Key Shipped Engineering Projects */}
-                  <div className="space-y-4">
-                    <h3 className={`print-section-header font-display font-black text-sm uppercase tracking-wider pb-1.5 border-b border-white/10 text-white flex items-center gap-2`}>
-                      <Layers className="w-4 h-4 text-[#8A9BC4]" />
-                      <span>Featured Systems & Deployments</span>
-                    </h3>
-
-                    <div className="space-y-4">
-                      
-                      {/* Project 1 */}
-                      <div>
-                        <h4 className="text-xs sm:text-[13px] font-bold text-white uppercase flex items-center gap-1.5">
-                          <span>Biddo Property Auction Engine</span>
-                          <span className="text-[10px] text-slate-400 font-mono font-normal">| Node · Next.js · Docker</span>
-                        </h4>
-                        <p className="text-[11.5px] text-slate-300 leading-normal mt-1">
-                          A high-concurrency property bidding suite mapping instant communication layers and user activity heatmaps. Eradicated memory leaks in Node/Next container clusters running on DigitalOcean, boosting uptime and performance.
-                        </p>
-                      </div>
-
-                      {/* Project 2 */}
-                      <div>
-                        <h4 className="text-xs sm:text-[13px] font-bold text-white uppercase flex items-center gap-1.5">
-                          <span>RabbAi Cognitive prep platform</span>
-                          <span className="text-[10px] text-slate-400 font-mono font-normal">| Python · FastAPI</span>
-                        </h4>
-                        <p className="text-[11.5px] text-slate-300 leading-normal mt-1">
-                          An AI exam engine providing simulated testing environments for regional curricula. Architected retrieval contexts and fast-dispatch API vectors, capping average request response at 145ms.
-                        </p>
-                      </div>
-
-                      {/* Project 3 */}
-                      <div>
-                        <h4 className="text-xs sm:text-[13px] font-bold text-white uppercase flex items-center gap-1.5">
-                          <span>Oyadrop Route Handler</span>
-                          <span className="text-[10px] text-slate-400 font-mono font-normal">| React · Google Maps API</span>
-                        </h4>
-                        <p className="text-[11.5px] text-slate-300 leading-normal mt-1">
-                          A logistics pipeline deploying optimal transit dispatch routines over local maps layouts, integrated with secure Paystack gateway processing.
-                        </p>
-                      </div>
-
-                    </div>
-                  </div>
-
+                {/* Footer link line */}
+                <div className="text-center italic mt-4 text-[10px] text-slate-400 font-sans border-t border-slate-100 pt-3">
+                  Full project case studies and live links available at airban-ikonicity.vercel.app
                 </div>
-
               </div>
 
             </div>
