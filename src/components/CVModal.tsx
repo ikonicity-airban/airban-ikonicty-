@@ -141,6 +141,7 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
     // Hold original styles reference for restoration in finally block
     const stylesheets = Array.from(document.querySelectorAll('style'));
     const originalContents = stylesheets.map(style => style.textContent || '');
+    const originalFetch = window.fetch;
     
     try {
       const { default: html2canvas } = await import('html2canvas');
@@ -148,64 +149,98 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
 
       // Temporarily transform all oklch() color functions in document stylesheets to standard rgb()/rgba() colors.
       // This prevents html2canvas's CSS parser from throwing "unsupported color function oklch" errors!
-      const oklchRegex = /oklch\(\s*([0-9.]+%?)\s+([0-9.]+)\s+([0-9.a-zA-Z%]+)(?:\s*\/\s*([0-9.]+%?))?\s*\)/gi;
+      const processOklchText = (cssText: string) => {
+        return cssText.replace(/oklch\s*\(([^)]+)\)/gi, (match, inner) => {
+          try {
+            const parts = inner.trim().split(/[\s/]+/).filter(Boolean);
+            const lStr = parts[0];
+            const cStr = parts[1];
+            const hStr = parts[2];
+
+            let L = parseFloat(lStr);
+            if (lStr.includes('%')) L /= 100;
+
+            const C = parseFloat(cStr);
+            const H = parseFloat(hStr) || 0;
+
+            let r = 0, g = 0, b = 0;
+
+            if (C < 0.04) {
+              // Gray/slate colors
+              if (L >= 0.95) { r = 248; g = 250; b = 252; }
+              else if (L >= 0.90) { r = 241; g = 245; b = 249; }
+              else if (L >= 0.82) { r = 226; g = 232; b = 240; }
+              else if (L >= 0.72) { r = 203; g = 213; b = 225; }
+              else if (L >= 0.60) { r = 148; g = 163; b = 184; }
+              else if (L >= 0.50) { r = 100; g = 116; b = 139; }
+              else if (L >= 0.42) { r = 71; g = 85; b = 105; }
+              else if (L >= 0.34) { r = 51; g = 65; b = 85; }
+              else if (L >= 0.25) { r = 30; g = 41; b = 59; }
+              else if (L >= 0.15) { r = 15; g = 23; b = 42; }
+              else { r = 2; g = 6; b = 23; }
+            } else {
+              // Approximate colored hues (green, cyan, blue, purple, etc.)
+              if (H >= 120 && H < 170) {
+                r = 57 * L * 2; g = 255 * L; b = 20 * L * 2;
+              } else if (H >= 170 && H < 220) {
+                r = 0; g = 212 * L; b = 255 * L;
+              } else if (H >= 220 && H < 280) {
+                r = 59 * L * 2; g = 130 * L; b = 246 * L;
+              } else if (H >= 280 && H < 340) {
+                r = 168 * L * 2; g = 85 * L; b = 247 * L;
+              } else {
+                r = 239 * L * 2; g = 110 * L; b = 15 * L * 2;
+              }
+            }
+
+            r = Math.max(0, Math.min(255, Math.round(r)));
+            g = Math.max(0, Math.min(255, Math.round(g)));
+            b = Math.max(0, Math.min(255, Math.round(b)));
+
+            let alpha = 1;
+            if (parts.length > 3) {
+              const aStr = parts[3];
+              if (aStr && !aStr.includes('var(')) {
+                let aVal = parseFloat(aStr);
+                if (aStr.includes('%')) aVal /= 100;
+                if (!isNaN(aVal)) {
+                  alpha = aVal;
+                }
+              }
+            }
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+          } catch (e) {
+            return 'rgb(0, 0, 0)';
+          }
+        });
+      };
+
+      // Override window.fetch to capture CSS files fetched by html2canvas and sanitize any oklch() color codes
+      window.fetch = async (input, init) => {
+        const url = typeof input === 'string' ? input : (input && (input as Request).url) ? (input as Request).url : '';
+        if (url && (url.includes('.css') || url.endsWith('.css') || url.includes('/assets/'))) {
+          try {
+            const response = await originalFetch(input, init);
+            if (response.ok) {
+              const originalText = await response.text();
+              const processedText = processOklchText(originalText);
+              return new Response(processedText, {
+                status: response.status,
+                statusText: response.statusText,
+                headers: response.headers
+              });
+            }
+          } catch (err) {
+            console.warn('Failed to intercept and sanitize color function inside fetch style asset:', url, err);
+          }
+        }
+        return originalFetch(input, init);
+      };
 
       stylesheets.forEach(style => {
         if (style.textContent && style.textContent.toLowerCase().includes('oklch')) {
-          style.textContent = style.textContent.replace(oklchRegex, (match, l, c, h, a) => {
-            try {
-              let L = parseFloat(l);
-              if (l.includes('%')) L /= 100;
-
-              let alpha = 1;
-              if (a) {
-                let aVal = parseFloat(a);
-                if (a.includes('%')) aVal /= 100;
-                alpha = aVal;
-              }
-
-              const C = parseFloat(c);
-              const H = parseFloat(h);
-
-              let r = 0, g = 0, b = 0;
-
-              if (C < 0.04) {
-                // Gray/slate colors
-                if (L >= 0.95) { r = 248; g = 250; b = 252; }
-                else if (L >= 0.90) { r = 241; g = 245; b = 249; }
-                else if (L >= 0.82) { r = 226; g = 232; b = 240; }
-                else if (L >= 0.72) { r = 203; g = 213; b = 225; }
-                else if (L >= 0.60) { r = 148; g = 163; b = 184; }
-                else if (L >= 0.50) { r = 100; g = 116; b = 139; }
-                else if (L >= 0.42) { r = 71; g = 85; b = 105; }
-                else if (L >= 0.34) { r = 51; g = 65; b = 85; }
-                else if (L >= 0.25) { r = 30; g = 41; b = 59; }
-                else if (L >= 0.15) { r = 15; g = 23; b = 42; }
-                else { r = 2; g = 6; b = 23; }
-              } else {
-                // Approximate colored hues (green, cyan, blue, purple, etc.)
-                if (H >= 120 && H < 170) {
-                  r = 57 * L * 2; g = 255 * L; b = 20 * L * 2;
-                } else if (H >= 170 && H < 220) {
-                  r = 0; g = 212 * L; b = 255 * L;
-                } else if (H >= 220 && H < 280) {
-                  r = 59 * L * 2; g = 130 * L; b = 246 * L;
-                } else if (H >= 280 && H < 340) {
-                  r = 168 * L * 2; g = 85 * L; b = 247 * L;
-                } else {
-                  r = 239 * L * 2; g = 110 * L; b = 15 * L * 2;
-                }
-              }
-
-              r = Math.max(0, Math.min(255, Math.round(r)));
-              g = Math.max(0, Math.min(255, Math.round(g)));
-              b = Math.max(0, Math.min(255, Math.round(b)));
-
-              return a ? `rgba(${r}, ${g}, ${b}, ${alpha})` : `rgb(${r}, ${g}, ${b})`;
-            } catch (e) {
-              return 'rgb(0, 0, 0)';
-            }
-          });
+          style.textContent = processOklchText(style.textContent);
         }
       });
 
@@ -279,6 +314,7 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
       console.error('High fidelity PDF compilation encountered an issue. Falling back to synthetic export:', err);
       handleDownloadCV(); // fallback to standard fast synthetic downloader
     } finally {
+      window.fetch = originalFetch;
       // ALWAYS restore original stylesheets to prevent affecting main portfolio rendering
       stylesheets.forEach((style, idx) => {
         if (originalContents[idx] !== undefined) {
@@ -450,7 +486,7 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
                       <span>Enugu, Nigeria · Remote Worldwide</span>
                     </div>
                     <div className="text-[10.5px] sm:text-[11.5px] text-slate-600 flex flex-wrap gap-x-3 gap-y-1 mt-1 font-sans">
-                      <a href="https://github.com/airban-ikonicity" target="_blank" rel="noreferrer" className="hover:underline text-slate-700">github.com/airban-ikonicity</a>
+                      <a href="https://github.com/ikonicity-airban" target="_blank" rel="noreferrer" className="hover:underline text-slate-700">github.com/ikonicity-airban</a>
                       <span className="text-slate-300">|</span>
                       <a href="https://linkedin.com/in/eban-godwin-ikoni" target="_blank" rel="noreferrer" className="hover:underline text-slate-700">linkedin.com/in/eban-godwin-ikoni</a>
                       <span className="text-slate-300">|</span>

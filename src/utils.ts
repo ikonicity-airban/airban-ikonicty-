@@ -131,7 +131,7 @@ BT
 0 -20 Td
 (Email: ikonicityairban@gmail.com | Phone: +234 816 986 2852 | Remote) Tj
 0 -12 Td
-(GitHub: github.com/airban-ikonicity | Web: airban-ikonicity.vercel.app) Tj
+(GitHub: github.com/ikonicity-airban | Web: airban-ikonicity.vercel.app) Tj
 0 -20 Td
 (PROFESSIONAL EXPERIENCE) Tj
 0 -12 Td

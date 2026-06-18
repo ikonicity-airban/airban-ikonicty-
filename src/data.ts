@@ -6,7 +6,7 @@ export const portfolioData = {
   tagline: "Software Engineer | Problem Solver",
   email: "ikonicityairban@gmail.com",
   phone: "+234 816 986 2852",
-  github: "https://github.com/airban-ikonicty",
+  github: "https://github.com/ikonicity-airban",
   address: "Enugu, Nigeria · Remote Worldwide",
   
   pullQuote: "You have to find your own way. Not every problem has the same solution, and most problems have more than one.",

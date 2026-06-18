@@ -38,6 +38,7 @@ import ScrollProgressHUD from "./components/ScrollProgressHUD";
 import MobileFastScroller from "./components/MobileFastScroller";
 import SectionDivider from "./components/SectionDivider";
 import { portfolioData } from "./data";
+import { UptimeCounter, LocalDateTimeIndicator, PingIndicator } from "./components/CockpitWidgets";
 import {
   handleDownloadCV,
   playClickSound,
@@ -90,9 +91,6 @@ export default function App() {
     return "SUCCESS: Workspace environment fully active! Ready to render.";
   };
 
-  const [uptime, setUptime] = useState({ d: 0, h: 0, m: 0, s: 0, ms: 0 });
-  const [ping, setPing] = useState(24);
-  const [localDateTime, setLocalDateTime] = useState("");
   const [videoUrl, setVideoUrl] = useState(() => {
     return localStorage.getItem("codeoven_video_url") || "";
   });
@@ -265,66 +263,6 @@ export default function App() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [booting]);
 
-  // Uptime dynamic calculator (Inception Date cached in Local Storage to prevent drift and persist status across browser refreshes)
-  useEffect(() => {
-    let savedInception = localStorage.getItem("codeoven_uptime_inception");
-    if (!savedInception) {
-      savedInception = "2021-01-01T00:00:00Z";
-      localStorage.setItem("codeoven_uptime_inception", savedInception);
-    }
-    const epoch =
-      new Date(savedInception).getTime() ||
-      new Date("2021-01-01T00:00:00Z").getTime();
-    const interval = setInterval(() => {
-      const now = Date.now();
-      const diff = now - epoch;
-
-      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((diff % (1000 * 60)) / 1000);
-      const ms = Math.floor(diff % 1000);
-
-      setUptime({ d, h, m, s, ms });
-    }, 45); // highly rapid updates to display milliseconds pacing
-    return () => clearInterval(interval);
-  }, []);
-
-  // Local Date and Time ticker
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-
-      const pad = (n: number) => String(n).padStart(2, "0");
-
-      const year = now.getFullYear();
-      const month = pad(now.getMonth() + 1);
-      const day = pad(now.getDate());
-
-      const hours = pad(now.getHours());
-      const minutes = pad(now.getMinutes());
-      const seconds = pad(now.getSeconds());
-
-      // Get three-letter short timezone or UTC offset
-      let tz = "";
-      try {
-        tz =
-          now
-            .toLocaleDateString("en-US", { timeZoneName: "short" })
-            .split(", ")[1] || "";
-      } catch (e) {
-        // Fallback
-      }
-
-      const formatted = `${year}-${month}-${day} @ ${hours}:${minutes}:${seconds}${tz ? ` (${tz})` : ""}`;
-      setLocalDateTime(formatted);
-    };
-
-    updateDateTime();
-    const interval = setInterval(updateDateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Real-time Database Synchronization Setup
   useEffect(() => {
     // 1. Instantly subscribe to real-time collections so offline/cached data loads immediately without blocker
@@ -395,16 +333,6 @@ export default function App() {
       unsubTestimonials();
       unsubAvailability();
     };
-  }, []);
-
-  // Ping jitter sim
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPing((prev) =>
-        Math.max(14, Math.min(48, prev + (Math.random() > 0.5 ? 2 : -2))),
-      );
-    }, 2500);
-    return () => clearInterval(interval);
   }, []);
 
   const handleSaveVideoUrl = (e: React.FormEvent) => {
@@ -691,7 +619,8 @@ export default function App() {
   const timeLeftStr = bootProgress === 100 ? "--:--:--" : `0:00:0${timeLeftSecs}`;
   const currSpeed = bootProgress === 0 ? "0k" : bootProgress < 100 ? "2.2M" : "2.4M";
 
-  const barLength = 25;
+  const isSmallScreen = typeof window !== "undefined" && window.innerWidth < 480;
+  const barLength = isSmallScreen ? 11 : 25;
   const filledBlocks = Math.floor((bootProgress / 100) * barLength);
   const emptyBlocks = barLength - filledBlocks;
   const bar = "█".repeat(filledBlocks) + "░".repeat(emptyBlocks);
@@ -745,69 +674,69 @@ export default function App() {
             {/* Terminal Window Shell */}
             <div className="w-full max-w-2xl bg-[#0c0d12] rounded-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] overflow-hidden font-mono">
               
-              {/* Windows-style Git Bash Window TitleBar */}
-              <div className="bg-[#181a23] px-4 py-2.5 flex items-center justify-between border-b border-white/5 select-none text-[11px] text-[#abb2bf]">
-                <div className="flex items-center gap-2">
+              {/* MacBook-style Git Bash Window TitleBar */}
+              <div className="bg-[#181a23] px-3 md:px-4 py-2.5 flex items-center justify-between border-b border-white/5 select-none text-[11px] text-[#abb2bf] gap-2">
+                <div className="flex items-center gap-2 min-w-0">
                   <Terminal 
-                    className="w-3.5 h-3.5" 
+                    className="w-3.5 h-3.5 flex-shrink-0" 
                     style={{ color: getAccentHex(accentColor) }}
                   />
-                  <span className="font-mono text-[#abb2bf] truncate max-w-xs md:max-w-none">
+                  <span className="font-mono text-[#abb2bf] truncate max-w-[130px] xs:max-w-[190px] sm:max-w-xs md:max-w-none">
                     MINGW64:/c/Users/Airban/projects/airban-ikonicity-portfolio
                   </span>
                 </div>
-                {/* Windows-style Terminal Actions */}
-                <div className="flex items-center gap-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] opacity-75 hover:opacity-100 transition-all cursor-pointer" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f] opacity-75 hover:opacity-100 transition-all cursor-pointer" />
+                {/* MacBook-style Terminal Actions */}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
                   <button 
                     onClick={() => setBooting(false)}
-                    className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] opacity-75 hover:opacity-100 transition-all cursor-pointer flex items-center justify-center group"
+                    className="w-2.5 h-2.5 rounded-full bg-[#ff5f56] hover:brightness-110 transition-all cursor-pointer flex items-center justify-center group"
                     title="Press ESC to bypass loader"
                   >
                     <span className="text-[6px] text-black font-bold opacity-0 group-hover:opacity-100 transition-all">×</span>
                   </button>
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e] hover:brightness-110 transition-all cursor-pointer" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#27c93f] hover:brightness-110 transition-all cursor-pointer" />
                 </div>
               </div>
 
               {/* Terminal window interior */}
-              <div className="p-4 md:p-6 space-y-5 text-[11px] md:text-xs text-[#abb2bf] leading-relaxed min-h-[350px] flex flex-col justify-between">
+              <div className="p-3 md:p-6 space-y-4 text-[9px] xs:text-[11px] md:text-xs text-[#abb2bf] leading-normal min-h-[310px] md:min-h-[350px] flex flex-col justify-between">
                 
                 {/* Scrollable command stream */}
-                <div className="space-y-4 text-left">
+                <div className="space-y-3.5 text-left overflow-hidden">
                   {/* Prompt line */}
-                  <div>
+                  <div className="break-all whitespace-normal text-[8.5px] xs:text-[11px] md:text-xs leading-normal">
                     <span className={`font-semibold ${textAccentClass}`}>eban@Airban-Home </span>
                     <span className="text-[#c678dd]">MINGW64 </span>
-                    <span className="text-[#e5c07b]">~/projects/airban-ikonicity-portfolio</span>
+                    <span className="text-[#e5c07b] break-all">~/projects/airban-ikonicity-portfolio</span>
                     <span className="text-[#56b6c2]"> (master)</span>
                     <br />
                     <span className="text-white">$ </span>
-                    <span className="text-white">curl -sSL https://airban-ikonicity.dev/boot.sh | bash</span>
+                    <span className="text-white break-all">curl -sSL https://airban-ikonicity.dev/boot.sh | bash</span>
                   </div>
 
                   {/* Connecting phase */}
-                  <div className="text-[10px] md:text-[11px] text-[#5c6370] space-y-0.5 select-none overflow-x-auto">
+                  <div className="text-[7.5px] xs:text-[9.5px] md:text-[11px] text-[#5c6370] space-y-0.5 select-none overflow-x-auto whitespace-pre scrollbar-thin">
                     <div>% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current</div>
                     <div>                                 Dload  Upload   Total   Spent    Left  Speed</div>
-                    <div className="text-[#61afef] font-semibold whitespace-pre">
+                    <div className="text-[#61afef] font-semibold">
                       {`100  4132k  100  ${String(receivedKBytes).padStart(4, " ")}k    0     0  2250k      0  ${timeTotalStr}  ${timeLeftStr === "--:--:--" ? `0:00:0${Math.floor(elapsedMs / 1000)}` : `0:00:0${Math.floor(elapsedMs / 1000)}`}  ${timeLeftStr}  ${currSpeed}`}
                     </div>
                   </div>
 
                   {/* Git Bash Terminal Download Output */}
                   <div className="space-y-2 border-t border-white/5 pt-3">
-                    <div className={`font-semibold flex flex-col md:flex-row md:items-center justify-between gap-1 ${textAccentClass}`}>
-                      <span className="tracking-tight text-xs">
+                    <div className={`font-semibold flex flex-col sm:flex-row sm:items-center justify-between gap-1 ${textAccentClass}`}>
+                      <span className="tracking-tight text-[10px] xs:text-xs">
                         Downloading Airban Avionics: [ {bar} ] {bootProgress}%
                       </span>
-                      <span className="text-[10px] text-[#abb2bf] font-mono">
+                      <span className="text-[9px] xs:text-[10px] text-[#abb2bf] font-mono">
                         {((bootProgress / 100) * 4.13).toFixed(2)} MB / 4.13 MB @ {bootProgress < 100 ? `${(1.8 + Math.random() * 0.4).toFixed(1)} MB/s` : "0 B/s"}
                       </span>
                     </div>
 
                     {/* Step log descriptor */}
-                    <div className="flex items-center gap-2 text-[#56b6c2] text-[10px] md:text-sm">
+                    <div className="flex items-center gap-2 text-[#56b6c2] text-[9.5px] xs:text-[11px] md:text-sm">
                       <span className="animate-ping text-[#ff605c] text-[8px]">●</span>
                       <span className="font-mono text-white/90">{getBootLogMessage(bootProgress)}</span>
                     </div>
@@ -1065,30 +994,21 @@ export default function App() {
             <span className="block text-[8px] tracking-widest font-bold uppercase text-[#8A9BC4]">
               REALTIME SYSTEM LATENCY
             </span>
-            <span className="block text-[#00D4FF] font-black">
-              {ping}ms (ENUGU_NODE)
-            </span>
+            <PingIndicator />
           </div>
 
           <div className="space-y-1 col-span-2">
             <span className="block text-[8px] tracking-widest font-bold uppercase text-[#8A9BC4]">
               SECURE SYSTEM RUNTIME (CODING UPTIME)
             </span>
-            <span className="block text-white font-black font-mono">
-              {uptime.d}D {uptime.h}H {uptime.m}M {uptime.s}S {uptime.ms}MS
-            </span>
+            <UptimeCounter />
           </div>
 
           <div className="space-y-1 col-span-2">
             <span className="block text-[8px] tracking-widest font-bold uppercase text-[#8A9BC4]">
               SYSTEM LOCAL DATE & TIME
             </span>
-            <span
-              className="block font-black font-mono"
-              style={{ color: getAccentHex(accentColor) }}
-            >
-              {localDateTime || "LOADING_DATETIME..."}
-            </span>
+            <LocalDateTimeIndicator accentColor={accentColor} />
           </div>
 
           <div className="space-y-1 col-span-2 lg:col-span-1 hidden md:block">

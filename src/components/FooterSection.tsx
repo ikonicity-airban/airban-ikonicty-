@@ -106,7 +106,13 @@ export default function FooterSection({ accentColor, onOpenAdmin, availabilitySt
     playClickSound('synth');
   };
 
+  const isMounted = useRef(false);
+
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     if (terminalEndRef.current) {
       terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }

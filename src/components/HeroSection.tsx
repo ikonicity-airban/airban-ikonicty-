@@ -45,6 +45,14 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
   const [flickerActive, setFlickerActive] = useState(false);
   const [showShowreel, setShowShowreel] = useState(false);
   const [activeSubtextIndex, setActiveSubtextIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const defaultBgVideo = "https://res.cloudinary.com/ikonicity-airban/video/upload/f_auto,q_auto/v1781709867/vecteezy_neon-city-ai-generated-ai-generative_31698896_w8zwsf_1_bdio5w.mp4";
   const bgVideoLoopToUse = heroBgVideoUrl || defaultBgVideo;
@@ -308,7 +316,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
         >
           <div 
             style={{ 
-              fontSize: '14vw',
+              fontSize: isMobile ? '16vw' : '14vw',
               lineHeight: '0.9',
               fontWeight: 800,
               background: `linear-gradient(to bottom, ${primaryColorHex} 10%, #050816 95%)`,
@@ -321,7 +329,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
           </div>
           <div 
             style={{ 
-              fontSize: '10vw',
+              fontSize: isMobile ? '11.5vw' : '10vw',
               lineHeight: '0.85',
               marginTop: '-1.5vw',
               fontWeight: 800,
@@ -671,7 +679,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
             mass: 0.95,
             delay: 0.75,
           }}
-          className="relative w-[86vw] flex items-center justify-center overflow-hidden !mt-0 !mb-0"
+          className="relative w-[99vw] flex items-center justify-center overflow-hidden !mt-0 !mb-0"
         >
           <div 
             className="relative w-full flex items-center justify-center"
@@ -679,7 +687,7 @@ export default function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, ava
           >
             {/* Central circular glow backdrop */}
             <div 
-              className="absolute inset-0 m-auto w-[184px] h-[184px] rounded-full border filter blur-md animate-pulse" 
+              className="absolute inset-0 m-auto w-[212px] h-[212px] rounded-full border filter blur-md animate-pulse" 
               style={{ 
                 borderColor: `${getAccentHex(accentColor)}26`, 
                 backgroundColor: `${getAccentHex(accentColor)}0d` 

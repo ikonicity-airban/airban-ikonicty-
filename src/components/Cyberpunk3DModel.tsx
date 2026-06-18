@@ -66,7 +66,7 @@ export default function Cyberpunk3DModel({ accentColor }: Cyberpunk3DModelProps)
       antialias: true,
       powerPreference: 'high-performance',
     });
-    renderer.setSize(width, height);
+    renderer.setSize(width, height, false);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
     // LIGHTS
@@ -293,7 +293,7 @@ export default function Cyberpunk3DModel({ accentColor }: Cyberpunk3DModelProps)
       const { width: newWidth, height: newHeight } = entries[0].contentRect;
       camera.aspect = newWidth / newHeight;
       camera.updateProjectionMatrix();
-      renderer.setSize(newWidth, newHeight);
+      renderer.setSize(newWidth, newHeight, false);
     });
 
     resizeObserver.observe(containerRef.current);

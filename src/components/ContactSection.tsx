@@ -45,6 +45,8 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
     setLogs((prev) => [...prev, `[${timestamp}] ${message}`]);
   };
 
+  const isMounted = useRef(false);
+
   useEffect(() => {
     // Initializing contact stream logs
     setLogs([
@@ -54,6 +56,10 @@ export default function ContactSection({ accentColor }: ContactSectionProps) {
   }, []);
 
   useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true;
+      return;
+    }
     if (terminalEndRef.current) {
       terminalEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
