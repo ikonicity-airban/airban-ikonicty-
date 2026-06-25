@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValueEvent } from 'motion/react';
-import { portfolioData } from '../data';
-import { playClickSound, getAccentHex, getAccentTextClass, getAccentBorderClass } from '../utils';
+import { portfolioData } from '../../data';
+import { playClickSound, getAccentHex, getAccentTextClass, getAccentBorderClass } from '../../utils';
 import { Gauge, Compass, Activity, Terminal, Cpu } from 'lucide-react';
 
 interface AboutSectionProps {
@@ -469,7 +469,7 @@ export default function AboutSection({ accentColor }: AboutSectionProps) {
             </div>
 
             {/* Currently Status */}
-            <div className="p-6 rounded-2xl bg-[#0a0f26] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85),inset_0_1px_3px_rgba(255,255,255,0.12)] space-y-4 hover:border-white/20 transition-all duration-300 flex flex-col justify-between h-full min-h-[200px]">
+            <div className="hidden md:flex p-6 rounded-2xl bg-[#0a0f26] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85),inset_0_1px_3px_rgba(255,255,255,0.12)] space-y-4 hover:border-white/20 transition-all duration-300 flex-col justify-between h-full min-h-[200px]">
               <div className="flex items-center gap-2 border-b border-white/5 pb-3">
                 <span className="w-2 h-2 rounded-full inline-block animate-pulse" style={{ backgroundColor: getAccentHex(accentColor) }} />
                 <h3 className="text-xs font-black tracking-widest text-white uppercase font-mono">

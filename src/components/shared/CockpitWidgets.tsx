@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getAccentHex } from '../utils';
+import { getAccentHex } from '../../utils';
 
 export function UptimeCounter() {
   const [uptime, setUptime] = useState({ d: 0, h: 0, m: 0, s: 0, ms: 0 });

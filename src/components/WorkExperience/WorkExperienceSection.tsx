@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { Briefcase, Calendar, MapPin, ExternalLink, Sparkles, Server } from 'lucide-react';
-import { getAccentHex, getAccentTextClass, getAccentBgClass } from '../utils';
+import { getAccentHex, getAccentTextClass, getAccentBgClass } from '../../utils';
 
 interface WorkExperienceSectionProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

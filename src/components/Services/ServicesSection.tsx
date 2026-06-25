@@ -1,8 +1,8 @@
 import { motion } from 'motion/react';
 import { Layers, Database, Cpu, Cloud, Link as LinkIcon, Compass, Play } from 'lucide-react';
-import { getAccentHex, getAccentTextClass, getAccentBgClass, getViaColorClass } from '../utils';
+import { getAccentHex, getAccentTextClass, getAccentBgClass, getViaColorClass } from '../../utils';
 // @ts-ignore
-import servicesBg from '../assets/images/services_bg_1782142266947.jpg';
+import servicesBg from '../../assets/images/services_bg_1782142266947.jpg';
 
 interface ServicesSectionProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

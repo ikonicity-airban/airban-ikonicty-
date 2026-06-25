@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronUp, Github, Linkedin, Twitter, MessageSquare, Compass, ArrowUpRight, Sparkles, Command, Globe, Activity, Cpu } from 'lucide-react';
-import Logo from './Logo';
-import { playClickSound, getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../utils';
+import Logo from '../shared/Logo';
+import { playClickSound, getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../../utils';
 
 interface FooterSectionProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

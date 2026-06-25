@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { getAccentHex, getAccentTextClass, getAccentBgClass } from '../utils';
+import { getAccentHex, getAccentTextClass, getAccentBgClass } from '../../utils';
 
 interface SectionDividerProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

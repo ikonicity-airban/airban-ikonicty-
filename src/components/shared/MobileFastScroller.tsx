@@ -12,7 +12,7 @@ import {
   Send,
   Settings
 } from 'lucide-react';
-import { playClickSound, getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../utils';
+import { playClickSound, getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../../utils';
 
 interface MobileFastScrollerProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

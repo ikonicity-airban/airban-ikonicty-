@@ -2,8 +2,8 @@ import { useEffect, useState, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Play, Download } from 'lucide-react';
 // @ts-ignore
-import robotAvatar from '../assets/images/hero-avatar.png';
-import { handleDownloadCV, playClickSound, getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass, getAccentRgba } from '../utils';
+import robotAvatar from '../../assets/images/hero-avatar.png';
+import { handleDownloadCV, playClickSound, getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass, getAccentRgba } from '../../utils';
 
 const containerVariants: any = {
   hidden: { opacity: 0 },
@@ -287,23 +287,6 @@ function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, availabilityStatus
       className="relative z-30 min-h-screen w-full bg-[#050816] overflow-visible flex flex-col justify-between"
       style={{ contentVisibility: 'auto' }}
     >
-      {/* 1. LOOPABLE BACKGROUND VIDEO BACKDROP - OMITTED FOR NOW TO PREVENT DEVICE CRASHES AND ENSURE ULTRA-SMOOTH CANVAS PERFORMANCE */}
-      {/* 
-      {currentBgVideo && (
-        <video
-          ref={bgVideoRef}
-          key={currentBgVideo}
-          src={currentBgVideo}
-          autoPlay
-          loop
-          muted 
-          playsInline
-          onError={handleVideoError}
-          className="absolute inset-0 w-full h-full object-cover z-0 opacity-60 pointer-events-none"
-        />
-      )}
-      */}
-
       {/* ─── GRAND HERO HEADER BACKDROP TEXT WITH SCROLL PARALLAX ─── */}
       <div 
         className="absolute inset-x-0 top-[20%] md:top-[calc(12%+4rem)] flex flex-col items-center justify-center select-none pointer-events-none overflow-hidden"
@@ -438,7 +421,7 @@ function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, availabilityStatus
 
         {/* LEFT COLUMN CONTENT: Absolute, left 5%, vertically centered & shifted downwards */}
         <div 
-          className="absolute left-[5%] top-1/2 -translate-y-[calc(50%-7rem)] w-[30%] flex flex-col space-y-16 text-left pointer-events-auto"
+          className="absolute left-[5%] top-1/2 -translate-y-[calc(50%-7rem)] w-[30%] flex flex-col space-y-16 text-left pointer-events-auto z-50"
           style={{ opacity: colOpacity }}
         >
           {/* Identity Block */}
@@ -534,7 +517,7 @@ function HeroSection({ accentColor, videoUrl, heroBgVideoUrl, availabilityStatus
 
         {/* RIGHT COLUMN CONTENT: Absolute, right 5%, vertically centered & shifted downwards */}
         <div 
-          className="absolute right-[5%] top-1/2 -translate-y-[calc(50%-7rem)] w-[30%] flex flex-col space-y-16 text-left pointer-events-auto"
+          className="absolute right-[5%] top-1/2 -translate-y-[calc(50%-7rem)] w-[30%] flex flex-col space-y-16 text-left pointer-events-auto z-50"
           style={{ opacity: colOpacity }}
         >
           {/* Display Label Block 1 */}

@@ -99,19 +99,27 @@ export const portfolioData = {
   skillsGrouped: [
     {
       category: "LANGUAGES",
-      skills: ["TypeScript", "JavaScript", "Python", "Rust", "C#", "Java", "Solidity", "C"]
+      skills: ["TypeScript", "JavaScript", "Go", "PHP", "Python", "Rust", "C#", "Java", "Solidity", "C"]
+    },
+    {
+      category: "AGENTIC DEVELOPMENT",
+      skills: ["LangChain", "LangGraph", "CrewAI", "LlamaIndex", "Semantic Kernel", "AutoGPT", "Multi-Agent Orchestration"]
+    },
+    {
+      category: "AGENTIC CODING TOOLS",
+      skills: ["Cursor AI", "Windsurf IDE", "GitHub Copilot", "Cline (Claude Dev)", "v0 (by Vercel)", "Hugging Face"]
     },
     {
       category: "FRONTEND",
-      skills: ["React", "Next.js", "React Native (Expo)", "Tailwind CSS", "Framer Motion", "Three.js", "Svelte", "HTML", "CSS"]
+      skills: ["React", "Next.js", "React Native (Expo)", "Tailwind CSS", "Vue.js", "Angular", "Framer Motion", "Three.js", "Svelte", "HTML", "CSS"]
     },
     {
       category: "BACKEND",
-      skills: ["Node.js", "Bun", "Hono", "Express.js", "FastAPI", "NestJS", ".NET"]
+      skills: ["Node.js", "Bun", "Laravel", "Django", "Spring Boot", "Hono", "Express.js", "FastAPI", "NestJS", ".NET"]
     },
     {
       category: "DATABASES",
-      skills: ["PostgreSQL", "MongoDB", "Redis", "SQLite", "Supabase"]
+      skills: ["PostgreSQL", "MongoDB", "Redis", "MySQL", "SQLite", "Supabase", "Firebase"]
     },
     {
       category: "CLOUD & DEVOPS",
@@ -119,15 +127,23 @@ export const portfolioData = {
     },
     {
       category: "BLOCKCHAIN & WEB3",
-      skills: ["Solidity", "Ethers.js", "ICP (Internet Computer)", "Foundry", "Smart Contracts"]
+      skills: ["Solana", "Solidity", "Ethers.js", "ICP (Internet Computer)", "Foundry", "Smart Contracts"]
     },
     {
       category: "AI & AUTOMATION",
       skills: ["AI Agent Systems", "LLM Integration", "Workflow Automation", "WhatsApp Automation (Baileys + Meta API)", "Telegram Bots"]
     },
     {
+      category: "CREATIVE & DESIGN",
+      skills: ["Figma", "Adobe XD", "Adobe Photoshop", "CorelDraw"]
+    },
+    {
+      category: "OFFICE & PRODUCTIVITY",
+      skills: ["Microsoft Office", "Microsoft Word", "Microsoft Excel", "Microsoft PowerPoint"]
+    },
+    {
       category: "TOOLS & PLATFORMS",
-      skills: ["Git", "GitHub", "Shopify Storefront API", "Paystack", "Google Maps API", "Figma", "Postman", "VS Code"]
+      skills: ["Git", "GitHub", "Shopify Storefront API", "Paystack", "Google Maps API", "Postman", "VS Code"]
     }
   ] as SkillCategory[],
 

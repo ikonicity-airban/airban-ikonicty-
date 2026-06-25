@@ -89,8 +89,8 @@
 
 .hero-avatar {
   position: absolute;
-  bottom: 10vh;
-  left: 50%;
+  bottom: calc(10vh - 6rem);
+  left: calc(50% - 2rem);
   transform: translateX(-50%);
   height: 108vh;
   width: auto;

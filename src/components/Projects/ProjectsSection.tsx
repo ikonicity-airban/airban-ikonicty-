@@ -1,10 +1,10 @@
 import { useState, useMemo, useRef, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ExternalLink, ChevronRight, Server, PhoneCall, Globe, Truck, Users, Search, Code, Cpu, ShieldAlert, X } from 'lucide-react';
-import { portfolioData } from '../data';
-import { Project } from '../types';
+import { portfolioData } from '../../data';
+import { Project } from '../../types';
 import ProjectDetailModal from './ProjectDetailModal';
-import { playClickSound, getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../utils';
+import { playClickSound, getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../../utils';
 
 interface ProjectsSectionProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Send, Mail, Phone, MapPin, Loader2, Check, AlertCircle, Github, Linkedin, Twitter, MessageSquare, Compass } from 'lucide-react';
-import { db } from '../firebase';
+import { db } from '../../firebase';
 import { collection, addDoc } from 'firebase/firestore';
-import Logo from './Logo';
+import Logo from '../shared/Logo';
 
-import { getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass, getAccentRgba } from '../utils';
+import { getAccentHex, getAccentTextClass, getAccentBgClass, getAccentBorderClass, getAccentRgba } from '../../utils';
 
 interface ContactSectionProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

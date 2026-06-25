@@ -19,7 +19,7 @@ import {
   Terminal,
   Settings
 } from 'lucide-react';
-import { playClickSound, handleDownloadCV, getAccentTextClass, getAccentBgClass } from '../utils';
+import { playClickSound, handleDownloadCV, getAccentTextClass, getAccentBgClass } from '../../utils';
 
 interface CVModalProps {
   isOpen: boolean;
@@ -692,7 +692,6 @@ export default function CVModal({ isOpen, onClose, accentColor }: CVModalProps) 
                           Delivered a complete, responsive shopping interface within a short engagement window.
                         </li>
                       </ul>
-                      {/* Carryover stack is rendered at top of page 2 in user specs, let's keep it here on screen too but make sure it flows logically */}
                       <p className="text-[10px] sm:text-[11px] text-slate-600 mt-2 font-sans">
                         <strong className="tracking-wider uppercase font-extrabold text-[9px] mr-1.5" style={{ color: accentColorHex }}>STACK</strong> React · CSS · JavaScript
                       </p>

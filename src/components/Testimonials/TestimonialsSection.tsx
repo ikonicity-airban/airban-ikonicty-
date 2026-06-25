@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getAccentHex, getAccentTextClass, getAccentBgClass, getAccentRgba } from '../utils';
+import { getAccentHex, getAccentTextClass, getAccentBgClass, getAccentRgba } from '../../utils';
 
 interface Testimonial {
   id: string;

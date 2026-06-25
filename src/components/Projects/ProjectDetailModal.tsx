@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ExternalLink, Cpu, Briefcase, CheckCircle2, ChevronRight, Globe, Layers } from 'lucide-react';
-import { Project } from '../types';
-import { getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../utils';
+import { Project } from '../../types';
+import { getAccentTextClass, getAccentBgClass, getAccentBorderClass } from '../../utils';
 
 interface ProjectDetailModalProps {
   isOpen: boolean;

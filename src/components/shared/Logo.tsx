@@ -1,6 +1,6 @@
 import React from 'react';
-import { AccentColor } from '../types';
-import { getAccentHex } from '../utils';
+import { AccentColor } from '../../types';
+import { getAccentHex } from '../../utils';
 
 interface LogoProps {
   size?: number; // width and height of the symbol
@@ -97,4 +97,3 @@ export default function Logo({ size = 48, showText = true, glow = true, accentCo
     </div>
   );
 }
-

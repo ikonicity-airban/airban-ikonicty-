@@ -31,7 +31,7 @@ import {
   auth, 
   googleProvider,
   seedDatabaseIfEmpty
-} from '../firebase';
+} from '../../firebase';
 import { 
   collection, 
   getDocs, 
@@ -45,8 +45,8 @@ import {
   orderBy 
 } from 'firebase/firestore';
 import { signInWithPopup, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { portfolioData } from '../data';
-import { getAccentHex, getAccentTextClass, getAccentBgClass } from '../utils';
+import { portfolioData } from '../../data';
+import { getAccentHex, getAccentTextClass, getAccentBgClass } from '../../utils';
 
 interface AdminSectionProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

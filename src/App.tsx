@@ -33,12 +33,12 @@ import {
   Home,
   Cpu,
 } from "lucide-react";
-import Logo from "./components/Logo";
-import ScrollProgressHUD from "./components/ScrollProgressHUD";
-import MobileFastScroller from "./components/MobileFastScroller";
-import SectionDivider from "./components/SectionDivider";
+import Logo from "./components/shared/Logo";
+import ScrollProgressHUD from "./components/shared/ScrollProgressHUD";
+import MobileFastScroller from "./components/shared/MobileFastScroller";
+import SectionDivider from "./components/shared/SectionDivider";
 import { portfolioData } from "./data";
-import { UptimeCounter, LocalDateTimeIndicator, PingIndicator } from "./components/CockpitWidgets";
+import { UptimeCounter, LocalDateTimeIndicator, PingIndicator } from "./components/shared/CockpitWidgets";
 import {
   handleDownloadCV,
   playClickSound,
@@ -50,18 +50,19 @@ import {
   getAccentSelectionClass,
 } from "./utils";
 import { AccentColor } from "./types";
-import HeroSection from "./components/HeroSection";
-import AboutSection from "./components/AboutSection";
-import SkillsSection from "./components/SkillsSection";
-import ProjectsSection from "./components/ProjectsSection";
-import WorkExperienceSection from "./components/WorkExperienceSection";
-import ServicesSection from "./components/ServicesSection";
-import CertificationsSection from "./components/CertificationsSection";
-import TestimonialsSection from "./components/TestimonialsSection";
-import ContactSection from "./components/ContactSection";
-import FooterSection from "./components/FooterSection";
-import AdminSection from "./components/AdminSection";
-import CVModal from "./components/CVModal";
+import HeroSection from "./components/Hero/HeroSection";
+import CompanyMarquee from "./components/shared/CompanyMarquee";
+import AboutSection from "./components/About/AboutSection";
+import SkillsSection from "./components/Skills/SkillsSection";
+import ProjectsSection from "./components/Projects/ProjectsSection";
+import WorkExperienceSection from "./components/WorkExperience/WorkExperienceSection";
+import ServicesSection from "./components/Services/ServicesSection";
+import CertificationsSection from "./components/Certifications/CertificationsSection";
+import TestimonialsSection from "./components/Testimonials/TestimonialsSection";
+import ContactSection from "./components/Contact/ContactSection";
+import FooterSection from "./components/Footer/FooterSection";
+import AdminSection from "./components/Admin/AdminSection";
+import CVModal from "./components/shared/CVModal";
 import { db, seedDatabaseIfEmpty } from "./firebase";
 import {
   collection,
@@ -1000,6 +1001,8 @@ export default function App() {
         onDownloadCVClick={() => setShowCVModal(true)}
         isBooting={booting}
       />
+
+      <CompanyMarquee accentColor={accentColor} />
 
       <SectionDivider
         label="NARRATIVE DECK"

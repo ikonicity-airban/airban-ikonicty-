@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Info, Layers, Cpu, Mail, Sparkles } from 'lucide-react';
-import { playClickSound, getAccentTextClass, getAccentBgClass } from '../utils';
+import { playClickSound, getAccentTextClass, getAccentBgClass } from '../../utils';
 
 interface ScrollProgressHUDProps {
   accentColor: 'green' | 'cyan' | 'pink' | 'purple' | 'yellow';

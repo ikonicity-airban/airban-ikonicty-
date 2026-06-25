@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { getAccentHex, getAccentTextClass, getAccentBgClass, getViaColorClass, getAccentRgba } from '../utils';
+import { getAccentHex, getAccentTextClass, getAccentBgClass, getViaColorClass, getAccentRgba } from '../../utils';
 
 interface CertItem {
   name: string;
@@ -246,7 +246,7 @@ export default function CertificationsSection({ accentColor }: CertificationsSec
             style={{ borderColor: getBorderColorWithOpacity20(accentColor) }}
           >
             {/* Ambient cyber light lines to accentuate box */}
-            <div className={`absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent ${getViaColorWithOpacity30(accentColor)} to-transparent`} />
+            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-[#39FF14]/30 to-transparent" style={{ backgroundImage: `linear-gradient(to right, transparent, ${getViaColorWithOpacity30(accentColor)}, transparent)` }} />
             
             <div className="max-w-3xl space-y-6">
               <div>
